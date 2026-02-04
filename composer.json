@@ -1,0 +1,16 @@
+{
+    "name": "personal/himuon-flex-cart",
+    "autoload": {
+        "psr-4": {
+            "Himuon\\Flex\\Cart\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Reagan Mahinay"
+        }
+    ],
+    "require-dev": {
+        "php-stubs/woocommerce-stubs": "^10.4"
+    }
+}
