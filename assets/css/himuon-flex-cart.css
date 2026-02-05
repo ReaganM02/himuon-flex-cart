@@ -12,6 +12,7 @@
     flex-direction: column;
     font-family: inherit;
     z-index: 99999;
+    overflow: hidden;
 }
 
 .himuon-cart--loading {
@@ -41,6 +42,7 @@
     display: inline-block;
     box-sizing: border-box;
     animation: rotation 0.4s linear infinite;
+    z-index: 999;
     }
 
     @keyframes rotation {
@@ -55,35 +57,6 @@
 .himuon-cart.is-loading .himuon-cart--loading {
     opacity: 1;
     pointer-events: all;
-}
-
-.himuon-cart--variation-select {
-    display: flex;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    overflow: hidden;
-    max-width: max-content;
-    margin-bottom: 0.5rem;
-}
-
-.himuon-cart--variation-select  select {
-    height: 2rem;
-    min-height: 2rem;
-    padding: 0;
-    padding-right: 0.5rem;
-    width: max-content;
-    align-items: center;
-    background-color: transparent;
-    box-shadow: 0 0 0 0;
-    border: 0;
-    font-size: 13px;
-}
-
-.himuon-cart--variation-label {
-    font-size: 13px;
-    padding-inline: 0.5rem;
-    display: grid;
-    place-items: center;
 }
 
 .himuon-cart--header,
@@ -181,28 +154,23 @@
 }
 
 .himuon-cart--name {
-    font-size: 13px;
+    font-size: 0.90rem;
     line-height: 1.4;
     color: var(--color-alt-content-text);
     text-decoration: none;
-    margin-bottom: 4px;
     display: block;
 }
 
 .himuon-cart--item-content {
     display: flex;
     gap: 1rem;
-}
-
-.himuon-cart--details {
     flex: 1;
-    min-width: 0;
 }
 
 .himuon-cart--thumb {
     display: block;
-    width: 60px;
-    height: 60px;
+    width: 70px;
+    height: 70px;
 }
 
 .himuon-cart--item {
@@ -213,7 +181,8 @@
 
 .himuon-cart--price {
     font-weight: 500;
-    font-size: 0.90rem;
+    font-size: 0.85rem;
+    text-align: right;
 }
 
 .himuon-cart--image {
@@ -233,22 +202,85 @@
     overflow: hidden;
     border-radius: 5px;
     max-width: max-content;
-    margin-top: 0.5rem;
 }
 
 .himuon-cart--quantity input[type="number"] {
-    width: 2rem;
+    width: 1.5rem;
     -moz-appearance: textfield;
     appearance: textfield;
     padding: 0;
     text-align: center;
-    min-height: 2rem;
-    line-height: 2rem;
-    font-size: 13px;
+    min-height: 1.5rem;
+    line-height: 1.5rem;
+    font-size: 12px;
     pointer-events: none;
     background-color: transparent;
     box-shadow: 0 0 0 0;
 }
+
+.himuon-cart--right-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.himuon-cart--variations {
+    display: flex;
+    gap: 0.3rem;
+    cursor: pointer;
+}
+
+.himuon-cart--variation-data {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    opacity: 0.5;
+}
+
+.himuon-cart--item-data {
+    flex-grow: 1;
+}
+
+.himuon-cart--variation-selection {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 40;
+    background-color: #fff;
+    box-shadow: 0 0 5px 0 #ddd;
+    height: 0;
+    transition: all ease 0.5s;
+}
+
+.himuon-cart--variation-selection.himuon-cart--show-variation {
+    height: 300px;
+}
+
+.himuon-cart--spinner-wrapper {
+    position: relative;
+    height: 0;
+    width: 0;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+}
+
+.himuon-cart--spinner-wrapper.himuon-cart--show-variation-spinner {
+    height: 100%;
+    width: 100%;   
+}
+
+.himuon-cart--variation-content {
+    padding: 1rem;
+}
+
+.himuon-cart--variation-content .woocommerce-variation-description {
+    display: none;
+}
+
+
 
 /* Chrome, Edge, Safari */
 .himuon-cart--quantity .qty::-webkit-inner-spin-button,
@@ -258,8 +290,7 @@
 }
 
 .himuon-cart--quantity button {
-    width: 2rem;
-    height: 2rem;
+    width: 1.5rem;
     background-color: transparent;
 }
 
