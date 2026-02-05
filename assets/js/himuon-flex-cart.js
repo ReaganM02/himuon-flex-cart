@@ -1,19 +1,60 @@
 jQuery(function ($) {
+
+    /**
+     * =============================================================================
+     * Side Cart State + Helpers
+     * =============================================================================
+     */
     var isUpdatingCartItem = false
 
-    function getSideCart() {
-        return $('#himuon-side-cart')
-    }
+    const getSideCart = () => { return $('#himuon-side-cart') }
 
-    function setLoading(isLoading) {
-        var $sideCart = getSideCart()
+    const setSideCartLoading = (isLoading) => {
+        const $sideCart = getSideCart()
         if (!$sideCart.length) {
             return
         }
         $sideCart.toggleClass('is-loading', !!isLoading)
     }
 
-    function updateCartItem($qtyWrap, newQty) {
+    const setCartItemVariationLoading = (isLoading) => {
+        const $el = $('.himuon-cart--spinner-wrapper')
+        if ($el.length) {
+            $el.toggleClass('himuon-cart--show-variation-spinner', !!isLoading)
+        }
+    }
+
+    const refreshSideCart = () => {
+        if (typeof wc_cart_fragments_params === 'undefined') {
+            return
+        }
+        if (isUpdatingCartItem) {
+            return
+        }
+
+        setSideCartLoading(true)
+        $(document.body).trigger('wc_fragment_refresh')
+    }
+
+    const debounce = (fn, wait) => {
+        var timeoutId
+        return function () {
+            var context = this
+            var args = arguments
+            clearTimeout(timeoutId)
+            timeoutId = setTimeout(function () {
+                fn.apply(context, args)
+            }, wait)
+        }
+    }
+
+    /**
+     * =============================================================================
+     * Cart Item Quantity Updates
+     * =============================================================================
+     */
+
+    const updateCartItemQuantity = ($qtyWrap, newQty) => {
         if (typeof wc_cart_fragments_params === 'undefined' || !himuonFlexCart || !himuonFlexCart.nonce) {
             return
         }
@@ -29,7 +70,7 @@ jQuery(function ($) {
 
         $qtyWrap.data('updating', true)
         isUpdatingCartItem = true
-        setLoading(true)
+        setSideCartLoading(true)
         $.ajax({
             url: wc_cart_fragments_params.wc_ajax_url.toString().replace('%%endpoint%%', 'himuon_update_cart_item'),
             type: 'POST',
@@ -41,7 +82,7 @@ jQuery(function ($) {
             complete: function () {
                 $qtyWrap.data('updating', false)
                 isUpdatingCartItem = false
-                setLoading(false)
+                setSideCartLoading(false)
             },
             success: function (data) {
                 var fragments = data && data.fragments ? data.fragments : (data && data.data ? data.data.fragments : null)
@@ -55,45 +96,7 @@ jQuery(function ($) {
         })
     }
 
-
-    function setRenderVariationLoading(isLoading) {
-        const $el = $('.himuon-cart--spinner-wrapper')
-        if ($el.length) {
-            $el.toggleClass('himuon-cart--show-variation-spinner', !!isLoading)
-        }
-    }
-
-    function refreshSideCart() {
-        if (typeof wc_cart_fragments_params === 'undefined') {
-            return
-        }
-        if (isUpdatingCartItem) {
-            return
-        }
-
-        setLoading(true)
-        $(document.body).trigger('wc_fragment_refresh')
-    }
-
-    $(document.body).on('added_to_cart removed_from_cart updated_cart_totals updated_wc_div', refreshSideCart)
-    $(document.body).on('wc_fragments_refreshed', function () {
-        setLoading(false)
-    })
-    setLoading(false)
-
-    function debounce(fn, wait) {
-        var timeoutId
-        return function () {
-            var context = this
-            var args = arguments
-            clearTimeout(timeoutId)
-            timeoutId = setTimeout(function () {
-                fn.apply(context, args)
-            }, wait)
-        }
-    }
-
-    const debouncedUpdate = debounce(async function (input) {
+    const debounceCartItemQuantityUpdate = debounce(async function (input) {
         var $wrap = $(input).closest('.himuon-cart--quantity')
         if (!$wrap.length) {
             return
@@ -102,10 +105,10 @@ jQuery(function ($) {
         if (Number.isNaN(qty)) {
             qty = 1
         }
-        updateCartItem($wrap, qty)
+        updateCartItemQuantity($wrap, qty)
     }, 300)
 
-    function clampQuantity(input, nextValue) {
+    const clampQuantity = (input, nextValue) => {
         const min = input.hasAttribute('min') ? parseInt(input.min, 10) : 1
         const max = input.hasAttribute('max') ? parseInt(input.max, 10) : Infinity
         const step = input.hasAttribute('step') ? parseInt(input.step, 10) : 1
@@ -115,17 +118,14 @@ jQuery(function ($) {
         if (Number.isNaN(value)) {
             value = min
         }
-
-        // Clamp
         value = Math.max(min, Math.min(max, value))
-
-        // Normalize to step
         value = Math.round((value - min) / step) * step + min
 
         input.value = value
     }
 
-    function updateQuantityButtons(qtyWrap, input) {
+
+    const updateQuantityButtons = (qtyWrap, input) => {
         if (!qtyWrap || !input) {
             return
         }
@@ -146,6 +146,120 @@ jQuery(function ($) {
         }
     }
 
+
+    /**
+     * =============================================================================
+     * Variation Form: Render + Init
+     * =============================================================================
+     */
+
+    const renderVariationForm = (productId, attributes, qty) => {
+        if (typeof wc_cart_fragments_params === 'undefined' || !himuonFlexCart || !himuonFlexCart.nonce) {
+            return
+        }
+        const variationContent = $('.himuon-cart--variation-selection')
+
+        if (variationContent.data('rendering')) return
+
+        variationContent.data('rendering', true)
+        setCartItemVariationLoading(true)
+        $.ajax({
+            url: wc_cart_fragments_params.wc_ajax_url.toString().replace('%%endpoint%%', 'himuon_render_variation'),
+            type: 'POST',
+            data: {
+                productId: productId,
+                nonce: himuonFlexCart.nonce,
+                quantity: qty
+            },
+            complete: function () {
+                variationContent.data('rendering', false)
+                setCartItemVariationLoading(false)
+            },
+            success: function (data) {
+                if (data && data.success && data.data && data.data.html) {
+                    var $content = $('.himuon-cart--variation-content')
+                    $content.html(data.data.html)
+                    var $form = $content.find('form.variations_form')
+                    if ($form.length) {
+                        $form.wc_variation_form()
+                        const attributesObj = JSON.parse(attributes)
+                        for (const [key, value] of Object.entries(attributesObj)) {
+                            $form.find(`#${key}`).val(value).trigger('change')
+                        }
+                    }
+                }
+            }
+        })
+    }
+
+    const debounceRenderCartItemVariation = debounce((variationEl, qty) => {
+        const { productId, cartItemKey, attributes } = variationEl.dataset
+        const variationContent = document.querySelector('.himuon-cart--variation-selection')
+        variationContent.classList.add('himuon-cart--show-variation')
+
+        if (productId && cartItemKey && attributes) {
+            variationContent.setAttribute('data-cart-item-key', cartItemKey)
+            renderVariationForm(productId, attributes, qty)
+        }
+    }, 400)
+
+    /**
+     * =============================================================================
+     * Variation Form: Update Cart Item
+     * =============================================================================
+     */
+
+    const updateCartItemVariation = (updateBtn, form, cartItemKey) => {
+        if (typeof wc_cart_fragments_params === 'undefined' || !himuonFlexCart || !himuonFlexCart.nonce) {
+            return
+        }
+        const $form = $(form)
+
+        const $formData = $form.serializeArray()
+        $formData.push({ name: 'cart_item_key', value: cartItemKey })
+        $formData.push({ name: 'nonce', value: himuonFlexCart.nonce })
+
+        $btn = $(updateBtn)
+
+        if ($btn.data('updatingVariationCartItem')) return
+
+        $btn.data('updatingVariationCartItem', true)
+        setCartItemVariationLoading(true)
+        $.ajax({
+            type: 'post',
+            url: wc_cart_fragments_params.wc_ajax_url.toString().replace('%%endpoint%%', 'himuon_update_cart_item_variation'),
+            data: $formData,
+            success: (data) => {
+                var fragments = data && data.fragments ? data.fragments : (data && data.data ? data.data.fragments : null)
+                if (fragments) {
+                    $.each(fragments, function (key, value) {
+                        $(key).replaceWith(value)
+                    })
+                    $(document.body).trigger('wc_fragments_refreshed')
+                }
+            },
+            complete: () => {
+                setCartItemVariationLoading(false)
+                $btn.data('updatingVariationCartItem', false)
+            }
+        })
+    }
+
+
+    /**
+     * =============================================================================
+     * Event Bindings
+     * =============================================================================
+     */
+
+    $(document.body).on('added_to_cart removed_from_cart updated_cart_totals updated_wc_div', refreshSideCart)
+    $(document.body).on('wc_fragments_refreshed', function () {
+        setSideCartLoading(false)
+    })
+
+    setSideCartLoading(false)
+
+    // Quantity Updates
     document.addEventListener('click', (e) => {
         const btn = e.target.closest('.himuon-cart--plus, .himuon-cart--minus')
         if (!btn) return
@@ -172,7 +286,7 @@ jQuery(function ($) {
 
         clampQuantity(input, next)
         updateQuantityButtons(qtyWrap, input)
-        debouncedUpdate(input)
+        debounceCartItemQuantityUpdate(input)
     })
 
     document.querySelectorAll('.himuon-cart--quantity').forEach((wrap) => {
@@ -180,113 +294,17 @@ jQuery(function ($) {
         updateQuantityButtons(wrap, input)
     })
 
-
-    /**
-     * Handle Variation Update
-     */
-
-    const renderVariationForm = (productId, attributes) => {
-        console.log(attributes)
-        if (typeof wc_cart_fragments_params === 'undefined' || !himuonFlexCart || !himuonFlexCart.nonce) {
-            return
-        }
-        const variationContent = $('.himuon-cart--variation-selection')
-
-        if (variationContent.data('rendering')) return
-
-        variationContent.data('rendering', true)
-        setRenderVariationLoading(true)
-        $.ajax({
-            url: wc_cart_fragments_params.wc_ajax_url.toString().replace('%%endpoint%%', 'himuon_render_variation'),
-            type: 'POST',
-            data: {
-                productId: productId,
-                nonce: himuonFlexCart.nonce
-            },
-            complete: function () {
-                variationContent.data('rendering', false)
-                setRenderVariationLoading(false)
-            },
-            success: function (data) {
-                if (data && data.success && data.data && data.data.html) {
-                    var $content = $('.himuon-cart--variation-content')
-                    $content.html(data.data.html)
-                    var $form = $content.find('form.variations_form')
-                    if ($form.length) {
-                        $form.wc_variation_form()
-                        const attributesObj = JSON.parse(attributes)
-                        for (const [key, value] of Object.entries(attributesObj)) {
-                            $form.find(`#${key}`).val(value).trigger('change')
-                        }
-                    }
-                }
-            }
-        })
-    }
-
-    const updateVariationCartItem = ($form) => {
-        console.log($form)
-        $.ajax({
-            type: 'post',
-            url: wc_add_to_cart_params.wc_ajax_url.replace(
-                '%%endpoint%%',
-                'himuon_update_variation_cart_item'
-            ),
-        })
-        // const variationId = $form.find('input[name="variation_id"]').val()
-        // const data = $form.serializeArray()
-        //     .filter(({ name }) => name !== 'add-to-cart')
-        //     .map((field) => {
-        //         console.log(field.name === 'variation_id')
-        //         if (field.name === 'product_id') {
-        //             return { name: 'product_id', value: variationId }
-        //         }
-        //         return field
-        //     })
-
-        // $(document.body).trigger('adding_to_cart', [$(btn), data])
-
-        // $(document.body).trigger('adding_to_cart', [$(btn), data])
-
-        // $.ajax({
-        //     type: 'post',
-        //     url: wc_add_to_cart_params.wc_ajax_url.replace(
-        //         '%%endpoint%%',
-        //         'add_to_cart'
-        //     ),
-        //     data: $.param(data),
-        //     success: function (response) {
-        //         if (!response) return
-
-        //         // if (response.error && response.product_url) {
-        //         //     window.location = response.product_url
-        //         //     return
-        //         // }
-        //         console.log(response)
-        //     }
-        // })
-    }
-
-    const debounceVariationClick = debounce((variationEl) => {
-        const { productId, cartItemKey, attributes } = variationEl.dataset
-        const variationContent = document.querySelector('.himuon-cart--variation-selection')
-        variationContent.classList.add('himuon-cart--show-variation')
-
-        if (productId && cartItemKey && attributes) {
-            variationContent.setAttribute('data-cart-item-key', cartItemKey)
-            renderVariationForm(productId, attributes)
-        }
-    }, 400)
-
-
-
+    // Render Variation Form
     document.addEventListener('click', (e) => {
         const target = e.target
         const variation = target.closest('.himuon-cart--variations')
         const variationContent = document.querySelector('.himuon-cart--variation-selection')
 
         if (variation) {
-            debounceVariationClick(variation)
+            const cartItemParent = variation.closest('.himuon-cart--item')
+            const quantity = cartItemParent.querySelector('.himuon-cart--qty')
+
+            debounceRenderCartItemVariation(variation, quantity.value)
             return
         }
 
@@ -299,22 +317,21 @@ jQuery(function ($) {
         }
     })
 
-    // Form Submission
-    $(document).on('submit', '.himuon-cart--variation-selection form.variations_form button[type="submit"]', function (e) {
-        e.preventDefault()
-        e.stopImmediatePropagation()
-        // your custom AJAX
+    // Update Variation Form
+    document.addEventListener('click', (e) => {
+        const target = e.target
+        const updateBtn = target.closest('.himuon-cart--variation-update-cart-item')
+        if (!updateBtn || !(updateBtn instanceof HTMLButtonElement)) return
+
+
+        const parent = updateBtn.closest('.himuon-cart--variation-selection')
+        const form = parent.querySelector('.variations_form.cart')
+
+        const { cartItemKey } = parent.dataset
+
+        if (!cartItemKey || !form) return
+
+        updateCartItemVariation(updateBtn, form, cartItemKey)
     })
-    // document.addEventListener('submit', (e) => {
-    //     const btn = e.target.closest('.himuon-cart--variation-selection form.variations_form button[type="submit"]')
-    //     if (!btn) return
-    //     e.preventDefault()
-    //     e.stopPropagation()
-    //     e.stopImmediatePropagation()
 
-    //     const $form = $(btn.form)
-    //     if ($form.length === 0) return
-
-    //     updateVariationCartItem($form)
-    // })
 })
