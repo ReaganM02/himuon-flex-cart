@@ -98,4 +98,13 @@ if ($freeShippingThreshold > 0 && $cart) {
             </a>
         </footer>
     <?php endif; ?>
+    <div class="himuon-cart--variation-selection">
+        <div class="himuon-cart--spinner-wrapper">
+            <div class="himuon-cart--variation-loading"
+                 aria-hidden="true">
+                <span class="himuon-cart--spinner"></span>
+            </div>
+        </div>
+        <div class="himuon-cart--variation-content"></div>
+    </div>
 </aside>
