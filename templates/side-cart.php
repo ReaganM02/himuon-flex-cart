@@ -25,10 +25,11 @@ if ($freeShippingThreshold > 0 && $cart) {
         <span class="himuon-cart--spinner"></span>
     </div>
     <header class="himuon-cart--header">
-        <div>
+        <div class="himuon-cart--title-wrapper">
             <h2 class="himuon-cart--title">
                 <?php echo esc_html__('Your Cart', 'himuon-flex-cart'); ?>
             </h2>
+            <span class="himuon-cart--item-counter"><?php echo absint(WC()->cart->get_cart_contents_count()) ?></span>
         </div>
         <div class="himuon-cart--close">
             <svg xmlns="http://www.w3.org/2000/svg"
@@ -43,7 +44,8 @@ if ($freeShippingThreshold > 0 && $cart) {
         </div>
     </header>
     <?php if ($freeShippingThreshold > 0): ?>
-        <section class="himuon-cart--progress">
+        <section
+                 class="himuon-cart--progress <?php echo $freeShippingProgress >= 100 ? 'himuon-cart--progress-finish' : '' ?>">
             <p class="himuon-cart--progress-text">
                 <?php
                 if ($freeShippingProgress >= 100) {
@@ -70,7 +72,11 @@ if ($freeShippingThreshold > 0 && $cart) {
 
     <div class="himuon-cart--body">
         <?php if (empty($items)): ?>
-            <p class="himuon-cart--empty"><?php echo esc_html__('Your cart is empty.', 'himuon-flex-cart'); ?></p>
+            <div class="himuon-cart--empty-message-wrapper">
+                <div class="himuon-cart--empty">
+                    <?php echo esc_html__('Your cart is empty.', 'himuon-flex-cart'); ?>
+                </div>
+            </div>
         <?php else: ?>
             <ul class="himuon-cart--items">
                 <?php
