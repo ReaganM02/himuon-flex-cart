@@ -96,9 +96,20 @@
 .himuon-cart--title {
     margin: 0;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 700;
     flex: 1;
     color: var(--himuon-cart--title);
+}
+
+.himuon-cart--item-counter {
+    color: var(--himuon-cart--text);
+    font-size: 0.9rem;
+}
+
+.himuon-cart--title-wrapper {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
 }
 
 .himuon-cart--close {
@@ -455,6 +466,29 @@
     display: grid;
     place-items: center;
     position: relative;
+    border-radius: 5px;
+    box-shadow: 0 0 10px 0 var(--himuon-cart--border);
+}
+
+.himuon-cart--mini-count {
+    position: absolute;
+    top: -8px;
+    right: -5px;
+    width: 23px;
+    height: 23px;
+    background-color: var(--himuon-cart--secondary);
+    border-radius: 20rem;
+    color: #fff;
+    display: grid;
+    place-items: center;
+    line-height: normal;
+    font-size: 12px;
+    border: 2px solid #fff;
+}
+
+.himuon-cart--mini-icon {
+    display: grid;
+    color: var(--himuon-cart--secondary);
 }
 
 /* 

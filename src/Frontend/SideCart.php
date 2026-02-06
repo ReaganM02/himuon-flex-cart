@@ -61,12 +61,13 @@ final class SideCart
 
     public function content()
     {
-        if (!function_exists('WC') || !WC()->cart)
+        if (!function_exists('WC') || !WC()->cart) {
             return '';
+        }
 
         $items = WC()->cart->get_cart();
         ob_start();
-        require_once HIMUON_FLEX_CART_PATH . 'templates/side-cart.php';
+        require_once HIMUON_FLEX_CART_PATH . 'templates/wrapper.php';
         echo ob_get_clean();
     }
 
@@ -76,6 +77,10 @@ final class SideCart
         $items = WC()->cart ? WC()->cart->get_cart() : [];
         require HIMUON_FLEX_CART_PATH . 'templates/side-cart.php';
         $fragments['#himuon-side-cart'] = ob_get_clean();
+
+        ob_start();
+        require HIMUON_FLEX_CART_PATH . 'templates/mini-cart.php';
+        $fragments['#himuon-mini-cart'] = ob_get_clean();
 
         return $fragments;
     }
