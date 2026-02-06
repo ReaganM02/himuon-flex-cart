@@ -48,6 +48,41 @@ jQuery(function ($) {
         }
     }
 
+    const openCartItemActions = (handler) => {
+        if (!handler) return
+        const cartItemMainParent = handler.closest('.himuon-cart--cart-item')
+        if (!cartItemMainParent) return
+
+        const actions = cartItemMainParent.querySelector('.himuon-cart--actions')
+        const cartItem = cartItemMainParent.querySelector('.himuon-cart--item')
+        const container = actions.querySelector('.himuon-cart--actions-content')
+
+        handler.classList.add('is-revealed')
+        actions.style.width = `${container.clientWidth}px`
+        cartItem.style.transform = `translateX(-${container.clientWidth}px)`
+        handler.style.transform = `translateX(-${container.clientWidth}px)`
+    }
+
+    const closeCartItemActions = (handler) => {
+        if (!handler) return
+        const cartItemMainParent = handler.closest('.himuon-cart--cart-item')
+        if (!cartItemMainParent) return
+
+        const actions = cartItemMainParent.querySelector('.himuon-cart--actions')
+        const cartItem = cartItemMainParent.querySelector('.himuon-cart--item')
+
+        handler.classList.remove('is-revealed')
+        actions.style.width = '0'
+        cartItem.style.transform = 'none'
+        handler.style.transform = 'none'
+    }
+
+    const closeAllCartItemActions = () => {
+        document.querySelectorAll('.himuon-cart--cart-item-action.is-revealed').forEach(closeCartItemActions)
+    }
+
+
+
     /**
      * =============================================================================
      * Cart Item Quantity Updates
@@ -245,6 +280,48 @@ jQuery(function ($) {
         })
     }
 
+    /**
+     * =============================================================================
+     * Cart Item Actions: Delete
+     * =============================================================================
+     */
+
+    const deleteCartItem = (el, cartItemKey) => {
+        if (typeof wc_cart_fragments_params === 'undefined' || !himuonFlexCart || !himuonFlexCart.nonce) {
+            return
+        }
+
+        const $el = $(el)
+
+        if ($el.data('deleting')) return
+
+        $el.data('deleting', true)
+        isUpdatingCartItem = true
+        setSideCartLoading(true)
+        $.ajax({
+            type: 'post',
+            url: wc_cart_fragments_params.wc_ajax_url.toString().replace('%%endpoint%%', 'himuon_delete_cart_item'),
+            data: {
+                cart_item_key: cartItemKey,
+                nonce: himuonFlexCart.nonce
+            },
+            complete: () => {
+                setSideCartLoading(false)
+                $el.data('deleting', false)
+                isUpdatingCartItem = false
+            },
+            success: (data) => {
+                var fragments = data && data.fragments ? data.fragments : (data && data.data ? data.data.fragments : null)
+                if (fragments) {
+                    $.each(fragments, function (key, value) {
+                        $(key).replaceWith(value)
+                    })
+                    $(document.body).trigger('wc_fragments_refreshed')
+                }
+            }
+        })
+    }
+
 
     /**
      * =============================================================================
@@ -334,4 +411,34 @@ jQuery(function ($) {
         updateCartItemVariation(updateBtn, form, cartItemKey)
     })
 
+    // Cart Item Actions
+    document.addEventListener('click', (e) => {
+        const handler = e.target.closest('.himuon-cart--cart-item-action')
+        if (!handler) {
+            if (!e.target.closest('.himuon-cart--cart-item')) {
+                closeAllCartItemActions()
+            }
+            return
+        }
+
+        e.preventDefault()
+
+        const isOpen = handler.classList.contains('is-revealed')
+        closeAllCartItemActions()
+
+        if (!isOpen) {
+            openCartItemActions(handler)
+        }
+    })
+
+    document.addEventListener('click', (e) => {
+        const deleteEl = e.target.closest('.himuon-cart--action-delete')
+        if (!deleteEl) return
+
+        const { cartItemKey } = deleteEl.dataset
+
+        if (!cartItemKey) return
+
+        deleteCartItem(deleteEl, cartItemKey)
+    })
 })

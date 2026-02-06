@@ -29,6 +29,10 @@ final class SideCart
         add_action('wp_ajax_himuon_update_cart_item_variation', [$this, 'updateCartItemVariation']);
         add_action('wp_ajax_nopriv_himuon_update_cart_item_variation', [$this, 'updateCartItemVariation']);
         add_action('wc_ajax_himuon_update_cart_item_variation', [$this, 'updateCartItemVariation']);
+
+        add_action('wp_ajax_himuon_delete_cart_item', [$this, 'deleteCartItem']);
+        add_action('wp_ajax_nopriv_himuon_delete_cart_item', [$this, 'deleteCartItem']);
+        add_action('wc_ajax_himuon_delete_cart_item', [$this, 'deleteCartItem']);
     }
     public function enqueueScripts()
     {
@@ -267,6 +271,37 @@ final class SideCart
 
         wp_send_json_success([
             'cart_item_key' => $newKey,
+            'fragments' => $fragments,
+            'cart_hash' => $cartHash,
+        ]);
+    }
+
+    public function deleteCartItem()
+    {
+        check_ajax_referer('himuon_flex_cart', 'nonce');
+
+        if (!function_exists('WC') || !WC()->cart) {
+            wp_send_json_error(['message' => 'Cart not available.'], 400);
+        }
+
+        $cartItemKey = isset($_POST['cart_item_key']) ? wc_clean(wp_unslash($_POST['cart_item_key'])) : '';
+
+        if ('' === $cartItemKey) {
+            wp_send_json_error(['message' => 'Invalid cart data.'], 400);
+        }
+
+        $cart = WC()->cart->get_cart();
+        if (!isset($cart[$cartItemKey])) {
+            wp_send_json_error(['message' => 'Cart item not found.'], 404);
+        }
+
+        WC()->cart->remove_cart_item($cartItemKey);
+        WC()->cart->calculate_totals();
+
+        $fragments = apply_filters('woocommerce_add_to_cart_fragments', []);
+        $cartHash = WC()->cart->get_cart_hash();
+
+        wp_send_json_success([
             'fragments' => $fragments,
             'cart_hash' => $cartHash,
         ]);
