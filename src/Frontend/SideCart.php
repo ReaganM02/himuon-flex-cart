@@ -2,10 +2,14 @@
 
 namespace Himuon\Flex\Cart\Frontend;
 
+use Himuon\Flex\Cart\Subscription;
+use WCS_ATT_Product_Price_Filters;
+
 // Exit if accessed directly.
 if (!defined('ABSPATH')) {
     exit;
 }
+
 
 
 final class SideCart
@@ -140,6 +144,7 @@ final class SideCart
 
         remove_action('woocommerce_single_variation', 'woocommerce_single_variation_add_to_cart_button', 20);
 
+        Subscription::removeLayout();
 
         add_action('woocommerce_after_variations_form', function () use ($productID, $quantity) {
             echo '<input type="hidden" name="quantity" value="' . esc_attr($quantity) . '">';
@@ -148,10 +153,18 @@ final class SideCart
         });
 
         ob_start();
+
+        Subscription::$removePriceFilter = false;
+        Subscription::removePriceFilter();
+
+
         $attributes = $product->get_variation_attributes();
         $availableVariations = $product->get_available_variations();
+
         require_once HIMUON_FLEX_CART_PATH . 'templates/variation.php';
+
         $output = ob_get_clean();
+
         if (null !== $previousProduct) {
             $GLOBALS['product'] = $previousProduct;
         } else {
@@ -159,6 +172,11 @@ final class SideCart
         }
 
         add_action('woocommerce_single_variation', 'woocommerce_single_variation_add_to_cart_button', 20);
+
+        Subscription::addLayout();
+        if (Subscription::$removePriceFilter) {
+            Subscription::addPriceFilter();
+        }
 
         wp_send_json_success(['html' => $output]);
     }
@@ -229,6 +247,7 @@ final class SideCart
         $existingVariationId = (int) $cartItem['variation_id'];
         $existingQty = (int) $cartItem['quantity'];
         $existingVariation = isset($cartItem['variation']) ? (array) $cartItem['variation'] : [];
+        $existingWcsattData = isset($cartItem['wcsatt_data']) ? (array) $cartItem['wcsatt_data'] : [];
 
 
         // Normalize for comparison
@@ -254,7 +273,14 @@ final class SideCart
 
         WC()->cart->remove_cart_item($cartItemKey);
 
-        $newKey = WC()->cart->add_to_cart($productId, $quantity, $variationId, $variation);
+        $cartItemData = [];
+        if (!empty($existingWcsattData) && array_key_exists('active_subscription_scheme', $existingWcsattData)) {
+            $cartItemData['wcsatt_data'] = [
+                'active_subscription_scheme' => $existingWcsattData['active_subscription_scheme'],
+            ];
+        }
+
+        $newKey = WC()->cart->add_to_cart($productId, $quantity, $variationId, $variation, $cartItemData);
 
         if ($newKey && $oldIndex !== false) {
             // rebuild cart contents in original order
