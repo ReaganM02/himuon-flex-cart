@@ -257,6 +257,7 @@
     background-color: transparent;
     box-shadow: 0 0 0 0;
     color: var(--himuon-cart--text);
+    border: 0;
 }
 
 .himuon-cart--right-content {
@@ -306,17 +307,17 @@
   -webkit-appearance: menulist !important;
   -moz-appearance: menulist !important;
 
-    background: #fff;
-    height: initial;
-    min-height: initial;
-    line-height: normal;
-    padding: 7px;
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 400;
-    box-shadow: 0 0 0 0;
-    color: var(--himuon-cart--text);
-    border: 1px solid var(--himuon-cart--border);
+  background: #fff;
+  height: initial !important;
+  min-height: initial;
+  line-height: normal;
+  padding: 7px !important;
+  font-family: inherit;
+  font-size: 14px !important;
+  font-weight: 400;
+  box-shadow: 0 0 0 0;
+  color: var(--himuon-cart--text);
+  border: 1px solid var(--himuon-cart--border);
 }
 
 .himuon-cart--variation-content .variations th,
@@ -398,6 +399,7 @@
 .himuon-cart--quantity button {
     width: 1.5rem;
     background-color: transparent;
+    border: 0;
 }
 
 
@@ -443,6 +445,30 @@
     font-weight: 700;
     font-size: 0.85rem;
     text-transform: uppercase;
+    border: 0;
+}
+
+.himuon-cart--form-wrapper .woocommerce-variation-price {
+    flex: 1;
+}
+
+.himuon-cart--form-wrapper .woocommerce-variation.single_variation  {
+    display: block;
+}
+
+.himuon-cart--form-wrapper .reset_variations {
+    display: none;
+}
+
+.himuon-cart--form-wrapper .price {
+    font-size: 1rem;
+    color: var(--himuon-cart--title);
+    font-weight: 500;
+}
+
+.himuon-cart--form-wrapper table.variations tr td, 
+.himuon-cart--form-wrapper table.variations tr th {
+    padding-bottom: 5px;
 }
 
 
@@ -490,7 +516,6 @@
     background-color: var(--himuon-cart--danger);
     color: #fff;
     display: grid;
-    height: 100%;
     place-items: center;
     cursor: pointer;
     font-size: 0.75rem;
@@ -563,24 +588,39 @@
     margin-top: 0.2rem;
 }
 
-.himuon-cart--subscription-option {
-    display: block;
-}
-
 .himuon-cart--subscription-label {
-    font-size: 0.90rem;
+    font-size: 0.95rem;
     color: var(--himuon-cart--text);
     font-weight: 400;
+    margin-bottom: 0.5rem;
+    margin-top: 0.5rem;
 }
 
 .himuon-cart--subscription-option input{
     display: none;
 }
 
-.himuon-cart--subscription-title {
+.himuon-cart--subscription-option-text {
+    display: grid;
+}
+
+.himuon-cart--subscription-radio {
+    content: "";
+    width: 15px;
+    height: 15px;
+    background-color: #fff;
+    box-shadow: 0 0 0 1px var(--himuon-cart--border);
     display: block;
+    border-radius: 50rem;
+}
+
+.himuon-cart--subscription-option input:checked + .himuon-cart--subscription-radio{
+    background-color: var(--himuon-cart--text);
+}
+
+.himuon-cart--subscription-title {
     font-size: 0.90rem;
-    color: var(--himuon-cart--text);
+    color: var(--himuon-cart--title);
     font-weight: 400;
     line-height: normal;
 }
@@ -591,6 +631,29 @@
     opacity: 0.7;
 }
 
+.himuon-cart--options-wrapper {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.himuon-cart--subscription-option {
+    padding: 0.5rem;
+    line-height: normal;
+    border: 1px solid var(--himuon-cart--border);
+    border-radius: 5px;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.woocommerce-page label {
+    margin-bottom: 0;
+}
+
+
+
+
+
 /* Edit Action */
 .himuon-cart--action-edit {
     width: max-content;
@@ -598,7 +661,6 @@
     background-color: var(--himuon-cart--secondary);
     color: #fff;
     display: grid;
-    height: 100%;
     place-items: center;
     cursor: pointer;
     font-size: 0.75rem;
@@ -621,11 +683,12 @@
 }
 
 .himuon-cart--checkout {
-    display: inline-block;
+    display: grid;
+    box-sizing: border-box;
     width: 100%;
     text-align: center;
     text-decoration: none;
-    padding: 10px 12px;
+    padding: 15px 12px;
     background: var(--himuon-cart--secondary);
     color: #fff;
     border-radius: 4px;
