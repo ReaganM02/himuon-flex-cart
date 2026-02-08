@@ -4,7 +4,7 @@
     --himuon-cart--text: #52525b;
     --himuon-cart--title: #27272a;
     --himuon-cart--border: #e4e4e7;
-    --himuon-cart--border-light: #e4e4e7;
+    --himuon-cart--border-light: #f4f4f5;
     --himuon-cart--danger: #ef4444;
 }
 
@@ -91,6 +91,7 @@
     align-items: center;
     gap: 10px;
     justify-content: space-between;
+    padding-bottom: 0;
 }
 
 .himuon-cart--title {
@@ -116,6 +117,7 @@
     width: 1.5rem;
     display: grid;
     place-items: center;
+    cursor: pointer;
 }
 
 .himuon-cart--progress {
@@ -195,6 +197,7 @@
     color: var(--color-alt-content-text);
     text-decoration: none;
     display: block;
+    margin-bottom: 6px;
 }
 
 .himuon-cart--item-content {
@@ -265,15 +268,31 @@
 
 .himuon-cart--variations {
     display: flex;
-    gap: 0.3rem;
+    gap: 0.1rem;
     cursor: pointer;
 }
 
 .himuon-cart--variation-data {
     display: flex;
     align-items: center;
-    font-size: 12px;
+    font-size: 13px;
     opacity: 0.5;
+    color: var(--himuon-cart--text);
+    gap: 0.3rem;
+}
+
+
+.himuon-cart--variation-data:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+.himuon-cart--variation-data span {
+    line-height: normal;
+}
+
+.himuon-cart--variation-indicator {
+    line-height: normal;
 }
 
 .himuon-cart--variation-product-title {
@@ -282,14 +301,45 @@
     font-size: .90rem;
 }
 
-.woocommerce .himuon-cart--variation-content .cart .variations label {
-    font-size: .90rem;
+.himuon-cart--variation-content select{
+  appearance: menulist !important;
+  -webkit-appearance: menulist !important;
+  -moz-appearance: menulist !important;
+
+    background: #fff;
+    height: initial;
+    min-height: initial;
+    line-height: normal;
+    padding: 7px;
+    font-family: inherit;
+    font-size: 14px;
     font-weight: 400;
+    box-shadow: 0 0 0 0;
+    color: var(--himuon-cart--text);
+    border: 1px solid var(--himuon-cart--border);
 }
 
-.woocommerce .himuon-cart--variation-content .stock {
-    font-weight: 400;
-    font-size: 0.90rem;
+.himuon-cart--variation-content .variations th,
+.himuon-cart--variation-content .variations td{
+    vertical-align: middle;
+}
+
+.himuon-cart--variation-content  .cart .variations label {
+    padding: 0 !important;
+    font-size: 0.85rem;
+    color: var(--himuon-cart--text);
+    font-weight: 400 !important;
+}
+
+.himuon-cart--variation-content  .woocommerce-select::after {
+    display: none;
+}
+
+
+
+.himuon-cart--variation-content .stock {
+    font-weight: 400 !important;
+    font-size: 0.90rem !important;
 }
 
 .himuon-cart--item-data {
@@ -310,7 +360,7 @@
 }
 
 .himuon-cart--variation-selection.himuon-cart--show-variation {
-    height: 300px;
+    height: 400px;
 }
 
 .himuon-cart--spinner-wrapper {
@@ -330,6 +380,11 @@
 
 .himuon-cart--variation-content .woocommerce-variation-description {
     display: none;
+}
+
+.himuon-cart--variation-content td, .himuon-cart--variation-content th {
+    padding: 0;
+    border: 0;
 }
 
 
@@ -391,6 +446,8 @@
 }
 
 
+
+
 /* 
     Cart Item Actions 
 */
@@ -423,6 +480,8 @@
 
 .himuon-cart--actions-content {
     height: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
 }
 
 .himuon-cart--action-delete {
@@ -434,7 +493,7 @@
     height: 100%;
     place-items: center;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
     font-weight: 600;
 }
@@ -489,6 +548,62 @@
 .himuon-cart--mini-icon {
     display: grid;
     color: var(--himuon-cart--secondary);
+}
+
+ 
+
+/* 
+    Subscription 
+*/
+.himuon-cart--purchase-type {
+    font-size: 0.80rem;
+    line-height: normal;
+    color: var(--himuon-cart--text);
+    opacity: 0.6;
+    margin-top: 0.2rem;
+}
+
+.himuon-cart--subscription-option {
+    display: block;
+}
+
+.himuon-cart--subscription-label {
+    font-size: 0.90rem;
+    color: var(--himuon-cart--text);
+    font-weight: 400;
+}
+
+.himuon-cart--subscription-option input{
+    display: none;
+}
+
+.himuon-cart--subscription-title {
+    display: block;
+    font-size: 0.90rem;
+    color: var(--himuon-cart--text);
+    font-weight: 400;
+    line-height: normal;
+}
+
+.himuon-cart--subscription-detail {
+    font-size: 0.85rem;
+    color: var(--himuon-cart--text);
+    opacity: 0.7;
+}
+
+/* Edit Action */
+.himuon-cart--action-edit {
+    width: max-content;
+    padding: 0.5rem 1rem;
+    background-color: var(--himuon-cart--secondary);
+    color: #fff;
+    display: grid;
+    height: 100%;
+    place-items: center;
+    cursor: pointer;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 600;
 }
 
 /* 
