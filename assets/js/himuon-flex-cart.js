@@ -6,6 +6,21 @@ jQuery(function ($) {
      * =============================================================================
      */
     var isUpdatingCartItem = false
+    var himuonVariationImagePatched = false
+
+    const patchVariationImageUpdate = () => {
+        if (himuonVariationImagePatched || !$.fn.wc_variations_image_update) {
+            return
+        }
+        himuonVariationImagePatched = true
+        const original = $.fn.wc_variations_image_update
+        $.fn.wc_variations_image_update = function (variation) {
+            if (this.closest('.himuon-cart--variation-selection').length) {
+                return this
+            }
+            return original.call(this, variation)
+        }
+    }
 
     const getSideCart = () => { return $('#himuon-side-cart') }
 
@@ -55,7 +70,9 @@ jQuery(function ($) {
 
         const actions = cartItemMainParent.querySelector('.himuon-cart--actions')
         const cartItem = cartItemMainParent.querySelector('.himuon-cart--item')
-        const container = actions.querySelector('.himuon-cart--actions-content')
+        const container = cartItemMainParent.querySelector('.himuon-cart--actions-content')
+
+        console.log(container)
 
         handler.classList.add('is-revealed')
         actions.style.width = `${container.clientWidth}px`
@@ -79,6 +96,19 @@ jQuery(function ($) {
 
     const closeAllCartItemActions = () => {
         document.querySelectorAll('.himuon-cart--cart-item-action.is-revealed').forEach(closeCartItemActions)
+    }
+
+    const openSideCart = () => {
+        const sideCart = document.querySelector('.himuon-flex-cart-plugin')
+        if (!sideCart) return
+
+        // remove then add to guarantee transition
+        sideCart.classList.remove('himuon-cart--show')
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                sideCart.classList.add('himuon-cart--show')
+            })
+        })
     }
 
 
@@ -216,10 +246,12 @@ jQuery(function ($) {
                     $content.html(data.data.html)
                     var $form = $content.find('form.variations_form')
                     if ($form.length) {
+                        patchVariationImageUpdate()
                         $form.wc_variation_form()
+
                         const attributesObj = JSON.parse(attributes)
                         for (const [key, value] of Object.entries(attributesObj)) {
-                            $form.find(`#${key}`).val(value).trigger('change')
+                            $form.find(`[name="attribute_${key}"]`).val(value).trigger('change')
                         }
                     }
                 }
@@ -321,7 +353,6 @@ jQuery(function ($) {
             }
         })
     }
-
 
     /**
      * =============================================================================
@@ -441,4 +472,36 @@ jQuery(function ($) {
 
         deleteCartItem(deleteEl, cartItemKey)
     })
+
+    document.addEventListener('click', (e) => {
+        const handler = e.target.closest('.himuon-side-cart-handler')
+        const sideCartWrapper = document.querySelector('.himuon-flex-cart-plugin')
+
+        const sideCart = document.getElementById('himuon-side-cart')
+
+        if (!sideCart) return
+
+        if (handler) {
+            sideCartWrapper.classList.toggle('himuon-cart--show')
+            return
+        }
+
+        const clickedInsideCart = sideCart.contains(e.target)
+        if (!clickedInsideCart) {
+            sideCartWrapper.classList.remove('himuon-cart--show')
+        }
+    })
+
+    // Close side cart
+    document.addEventListener('click', (e) => {
+        const closeCartEl = e.target.closest('.himuon-cart--close')
+        if (!closeCartEl) return
+        const sideCartWrapper = document.querySelector('.himuon-flex-cart-plugin')
+        sideCartWrapper.classList.remove('himuon-cart--show')
+    })
+
+    $(document.body).on('added_to_cart', function () {
+        $(document.body).one('wc_fragments_refreshed', openSideCart)
+    })
+
 })
