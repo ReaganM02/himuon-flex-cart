@@ -499,6 +499,7 @@ jQuery(function ($) {
         sideCartWrapper.classList.remove('himuon-cart--show')
     })
 
+    // Trigger when added to cart
     $(document.body).on('added_to_cart', function () {
         $(document.body).one('wc_fragments_refreshed', openSideCart)
     })
@@ -521,4 +522,16 @@ jQuery(function ($) {
         }
     })
 
+    // Track Variation Value
+    document.addEventListener('change', (e) => {
+        const handler = e.target.closest('.himuon-cart--variation-content')
+        if (!handler) return
+        const selects = Array.from(handler.querySelectorAll('select'))
+        const anyEmpty = selects.some((select) => select.value.trim() === '')
+
+        const updateBtn = handler.querySelector('.himuon-cart--variation-update-cart-item')
+        if (updateBtn) {
+            updateBtn.disabled = anyEmpty
+        }
+    })
 })
