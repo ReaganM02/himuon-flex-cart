@@ -17,6 +17,51 @@ $displayVariations = [];
 $dataAttributesMap = [];
 $parentProduct = null;
 $productTitle = $product ? $product->get_name() : '';
+$purchaseLabel = '';
+$subscriptionSchemeKey = null;
+if (class_exists('WCS_ATT_Product_Schemes')) {
+    $purchaseLabel = __('Single purchase', 'himuon-flex-cart');
+    if (isset($cartItem['wcsatt_data']) && array_key_exists('active_subscription_scheme', (array) $cartItem['wcsatt_data'])) {
+        $schemeKey = $cartItem['wcsatt_data']['active_subscription_scheme'];
+        if (!empty($schemeKey)) {
+            $subscriptionSchemeKey = $schemeKey;
+            $purchaseLabel = __('Monthly delivery', 'himuon-flex-cart');
+            $schemeObject = WCS_ATT_Product_Schemes::get_subscription_scheme($product, 'object', $schemeKey);
+            if ($schemeObject && method_exists($schemeObject, 'get_period') && method_exists($schemeObject, 'get_interval')) {
+                $period = $schemeObject->get_period();
+                $interval = absint($schemeObject->get_interval());
+                if ($interval > 1 && $period) {
+                    $periodLabel = $period;
+                    if (!str_ends_with($periodLabel, 's')) {
+                        $periodLabel .= 's';
+                    }
+                    $purchaseLabel = sprintf(
+                        __('Every %1$d %2$s', 'himuon-flex-cart'),
+                        $interval,
+                        $periodLabel
+                    );
+                } elseif ($interval === 1 && $period) {
+                    $labelMap = [
+                        'day' => __('Daily delivery', 'himuon-flex-cart'),
+                        'week' => __('Weekly delivery', 'himuon-flex-cart'),
+                        'month' => __('Monthly delivery', 'himuon-flex-cart'),
+                        'year' => __('Yearly delivery', 'himuon-flex-cart'),
+                    ];
+                    if (isset($labelMap[$period])) {
+                        $purchaseLabel = $labelMap[$period];
+                    }
+                }
+            }
+        }
+    }
+}
+
+$priceHtml = WC()->cart->get_product_price($product);
+if ($subscriptionSchemeKey && class_exists('WCS_ATT_Product_Prices')) {
+    $schemePrice = WCS_ATT_Product_Prices::get_price($product, $subscriptionSchemeKey);
+    $displayPrice = wc_get_price_to_display($product, ['price' => $schemePrice]);
+    $priceHtml = wc_price($displayPrice);
+}
 
 
 
@@ -102,11 +147,11 @@ if (!empty($selectedVariations)) {
                                 </span>
                             </div>
                         <?php endforeach; ?>
-                        <div>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" class="bi-chevron-right bi" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
-                            </svg>
-                        </div>
+                    </div>
+                <?php endif; ?>
+                <?php if ('' !== $purchaseLabel): ?>
+                    <div class="himuon-cart--purchase-type">
+                        <?php echo esc_html($purchaseLabel); ?>
                     </div>
                 <?php endif; ?>
             </div>
@@ -128,7 +173,7 @@ if (!empty($selectedVariations)) {
                             aria-label="<?php echo esc_attr__('Increase quantity', 'himuon-flex-cart'); ?>">+</button>
                 </div>
                 <div class="himuon-cart--price">
-                    <?php echo wp_kses_post(WC()->cart->get_product_price($product)); ?>
+                    <?php echo wp_kses_post($priceHtml); ?>
                 </div>
             </div>
         </div>
@@ -140,6 +185,11 @@ if (!empty($selectedVariations)) {
     </div>
     <div class="himuon-cart--actions">
        <div class="himuon-cart--actions-content">
+        <?php if (!empty($displayVariations)): ?>
+            <div class="himuon-cart--action-edit">
+                <?php echo esc_html__('Edit', 'himuon-flex-cart') ?>
+            </div>
+        <?php endif; ?>   
          <div class="himuon-cart--action-delete" data-cart-item-key="<?php echo esc_attr($cartItemKey)?>">
             <?php echo esc_html__('Delete', 'himuon-flex-cart') ?>
         </div>
