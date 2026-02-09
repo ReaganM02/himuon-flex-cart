@@ -72,8 +72,6 @@ jQuery(function ($) {
         const cartItem = cartItemMainParent.querySelector('.himuon-cart--item')
         const container = cartItemMainParent.querySelector('.himuon-cart--actions-content')
 
-        console.log(container)
-
         handler.classList.add('is-revealed')
         actions.style.width = `${container.clientWidth}px`
         cartItem.style.transform = `translateX(-${container.clientWidth}px)`
@@ -475,6 +473,7 @@ jQuery(function ($) {
 
     document.addEventListener('click', (e) => {
         const handler = e.target.closest('.himuon-side-cart-handler')
+        if (!handler) return
         const sideCartWrapper = document.querySelector('.himuon-flex-cart-plugin')
 
         const sideCart = document.getElementById('himuon-side-cart')
@@ -502,6 +501,24 @@ jQuery(function ($) {
 
     $(document.body).on('added_to_cart', function () {
         $(document.body).one('wc_fragments_refreshed', openSideCart)
+    })
+
+    // Edit Cart Item 
+    document.addEventListener('click', (e) => {
+        const editHandler = e.target.closest('.himuon-cart--action-edit')
+        if (!editHandler) return
+
+        const cartItemParent = editHandler.closest('.himuon-cart--cart-item')
+
+        const variationHandler = cartItemParent.querySelector('.himuon-cart--variations')
+        if (variationHandler) {
+            variationHandler.dispatchEvent(new Event('click', { bubbles: true }))
+        }
+
+        const actionWrapper = cartItemParent.querySelector('.himuon-cart--cart-item-action')
+        if (actionWrapper && actionWrapper.classList.contains('is-revealed')) {
+            closeAllCartItemActions()
+        }
     })
 
 })
