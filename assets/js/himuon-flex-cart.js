@@ -7,6 +7,8 @@ jQuery(function ($) {
      */
     var isUpdatingCartItem = false
     var himuonVariationImagePatched = false
+    // Refresh fragments once on first open to pick up server-side changes without a page-load refresh.
+    var hasRefreshedOnOpen = false
 
     const patchVariationImageUpdate = () => {
         if (himuonVariationImagePatched || !$.fn.wc_variations_image_update) {
@@ -100,6 +102,11 @@ jQuery(function ($) {
         const sideCart = document.querySelector('.himuon-flex-cart-plugin')
         if (!sideCart) return
 
+        if (!hasRefreshedOnOpen && typeof wc_cart_fragments_params !== 'undefined') {
+            hasRefreshedOnOpen = true
+            refreshSideCart()
+        }
+
         // remove then add to guarantee transition
         sideCart.classList.remove('himuon-cart--show')
         requestAnimationFrame(() => {
@@ -108,7 +115,6 @@ jQuery(function ($) {
             })
         })
     }
-
 
 
     /**
@@ -358,7 +364,7 @@ jQuery(function ($) {
      * =============================================================================
      */
 
-    $(document.body).on('added_to_cart removed_from_cart updated_cart_totals updated_wc_div', refreshSideCart)
+    $(document.body).on('added_to_cart removed_from_cart', refreshSideCart)
     $(document.body).on('wc_fragments_refreshed', function () {
         setSideCartLoading(false)
     })
@@ -473,7 +479,6 @@ jQuery(function ($) {
 
     document.addEventListener('click', (e) => {
         const handler = e.target.closest('.himuon-side-cart-handler')
-        if (!handler) return
         const sideCartWrapper = document.querySelector('.himuon-flex-cart-plugin')
 
         const sideCart = document.getElementById('himuon-side-cart')
@@ -481,7 +486,11 @@ jQuery(function ($) {
         if (!sideCart) return
 
         if (handler) {
-            sideCartWrapper.classList.toggle('himuon-cart--show')
+            if (sideCartWrapper.classList.contains('himuon-cart--show')) {
+                sideCartWrapper.classList.remove('himuon-cart--show')
+            } else {
+                openSideCart()
+            }
             return
         }
 
@@ -534,4 +543,5 @@ jQuery(function ($) {
             updateBtn.disabled = anyEmpty
         }
     })
+
 })
