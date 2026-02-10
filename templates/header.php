@@ -1,32 +1,10 @@
 <?php
+
+use Himuon\Flex\Cart\Helper;
 // Exit if accessed directly.
 if (!defined('ABSPATH')) {
     exit;
 }
-
-$allowedSVG = [
-    'svg' => [
-        'xmlns' => true,
-        'viewbox' => true,
-        'viewBox' => true,
-        'fill' => true,
-        'stroke' => true,
-        'stroke-width' => true,
-        'width' => true,
-        'height' => true,
-        'class' => true,
-        'aria-hidden' => true,
-        'role' => true,
-    ],
-    'path' => [
-        'd' => true,
-        'fill' => true,
-        'stroke' => true,
-        'stroke-linecap' => true,
-        'stroke-linejoin' => true,
-    ],
-];
-
 ?>
 <header class="himuon-cart--header">
     <div class="himuon-cart--title-wrapper">
@@ -43,6 +21,6 @@ $allowedSVG = [
         <?php endif; ?>
     </div>
     <div class="himuon-cart--close">
-        <?php echo wp_kses($data['closeIcon'], $allowedSVG); ?>
+        <?php echo wp_kses($data['closeIcon'], Helper::allowSVG()); ?>
     </div>
 </header>
