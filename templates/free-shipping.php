@@ -9,10 +9,10 @@ if (!defined('ABSPATH')) {
         <p class="himuon-cart--progress-text">
             <?php
             if ($data['progress'] >= 100) {
-                echo esc_html__('You have free shipping!', 'himuon-flex-cart');
+                echo esc_html($data['successText']);
             } else {
                 printf(
-                    esc_html__($data['remainingText']),
+                    esc_html($data['remainingText']),
                     wp_kses_post($data['remaining'])
                 );
             }
