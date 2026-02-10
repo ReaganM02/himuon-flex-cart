@@ -450,7 +450,13 @@ jQuery(function ($) {
     document.addEventListener('click', (e) => {
         const handler = e.target.closest('.himuon-cart--cart-item-action')
         if (!handler) {
-            if (!e.target.closest('.himuon-cart--cart-item')) {
+            const openHandler = document.querySelector('.himuon-cart--cart-item-action.is-revealed')
+            if (!openHandler) return
+
+            const clickedCartItem = e.target.closest('.himuon-cart--cart-item')
+            const openCartItem = openHandler.closest('.himuon-cart--cart-item')
+
+            if (!clickedCartItem || (openCartItem && clickedCartItem !== openCartItem)) {
                 closeAllCartItemActions()
             }
             return
