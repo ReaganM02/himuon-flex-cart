@@ -81,14 +81,10 @@ $cartSubtotal = $cart ? $cart->get_cart_subtotal() : '';
                 <?php echo esc_html__('Checkout', 'himuon-flex-cart'); ?>
             </a>
         </footer>
-        <div class="himuon-cart--variation-selection">
-            <div class="himuon-cart--spinner-wrapper">
-                <div class="himuon-cart--variation-loading"
-                     aria-hidden="true">
-                    <span class="himuon-cart--spinner"></span>
-                </div>
+        <div class="himuon-cart--edit-item-wrapper">
+            <div class="himuon-cart--edit-item-overlay"></div>
+            <div class="himuon-cart--edit-content">
             </div>
-            <div class="himuon-cart--variation-content"></div>
         </div>
     <?php endif; ?>
 </aside>
