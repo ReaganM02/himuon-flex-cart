@@ -2,8 +2,7 @@
 
 namespace Himuon\Flex\Cart;
 
-use WC_Product_Variable;
-use WCS_ATT_Product_Price_Filters;
+use Himuon\Flex\Cart\Frontend\EditCartItemView;
 
 // Exit if accessed directly.
 if (!defined('ABSPATH')) {
@@ -14,18 +13,15 @@ final class Variation
 {
     public static function getForm($cartItem, $cartItemKey)
     {
-        if (!$cartItem || empty($cartItem['data']) || !($cartItem['data'] instanceof \WC_Product)) {
+        if (!$cartItem) {
             return false;
         }
 
-        $product = $cartItem['data'];
-
-        $parentId = $product->get_parent_id();
-        $parent = $parentId ? wc_get_product($parentId) : null;
-
-        if (!$parent || !$parent->is_type('variable') || !$parent instanceof WC_Product_Variable) {
+        $viewData = EditCartItemView::build($cartItem, $cartItemKey);
+        if (!$viewData) {
             return false;
         }
+        $parent = $viewData['product'];
 
         $previousProduct = isset($GLOBALS['product']) ? $GLOBALS['product'] : null;
         $GLOBALS['product'] = $parent;
@@ -34,18 +30,12 @@ final class Variation
         $removedPriceFilters = Subscription::removeSubscriptionPriceFilters();
 
         self::addVariationDescriptionFilter();
-
-        $args = [
-            'product' => $parent,
-            'attributes' => $parent->get_variation_attributes(),
-            'available_variations' => $parent->get_available_variations(),
-            'cartItemKey' => $cartItemKey
-        ];
+        $viewData['available_variations'] = $parent->get_available_variations();
 
         remove_action('woocommerce_single_variation', 'woocommerce_single_variation_add_to_cart_button', 20);
         try {
             ob_start();
-            Helper::template('edit-cart-item.php', $args);
+            Helper::template('edit-cart-item.php', $viewData);
             $form = ob_get_clean();
         } finally {
 
@@ -66,6 +56,7 @@ final class Variation
             }
 
             self::removeVariationDescriptionFilter();
+
         }
 
         return $form;
