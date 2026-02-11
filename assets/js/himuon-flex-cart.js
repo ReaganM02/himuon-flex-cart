@@ -269,8 +269,19 @@ jQuery(function ($) {
             type: 'post',
             url: wc_cart_fragments_params.wc_ajax_url.toString().replace('%%endpoint%%', 'himuon_update_cart_item_variation'),
             data: $formData,
-            success: (data) => {
-                var fragments = data && data.fragments ? data.fragments : (data && data.data ? data.data.fragments : null)
+            success: (response) => {
+                const payload = response && response.data ? response.data : response
+
+                // Handle "same variation selected" case.
+                if (payload && payload.no_change) {
+                    const wrapper = document.querySelector('.himuon-cart--edit-item-wrapper')
+                    if (wrapper) {
+                        wrapper.classList.remove('himuon-cart--editing')
+                    }
+                    return
+                }
+
+                const fragments = payload && payload.fragments ? payload.fragments : null
                 if (fragments) {
                     $.each(fragments, function (key, value) {
                         $(key).replaceWith(value)
