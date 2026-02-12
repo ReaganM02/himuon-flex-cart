@@ -40,7 +40,7 @@ if (!defined('ABSPATH')) {
                 <?php if (!empty($data['variation'])): ?>
                     <?php do_action('himuon_flex_cart_before_cart_item_variation', $data); ?>
                     <div class="himuon-cart--variations">
-                        <?php echo esc_html($data['variation']) ?>
+                        <?php echo esc_html(trim($data['variation'])) ?>
                     </div>
                     <?php do_action('himuon_flex_cart_after_cart_item_variation', $data); ?>
                 <?php endif; ?>
@@ -80,6 +80,12 @@ if (!defined('ABSPATH')) {
                 <div class="himuon-cart--price">
                     <?php echo wc_price($data['price']) ?>
                 </div>
+                <?php if (!empty($data['discount']['hasDiscount'])): ?>
+                    <div class="himuon-cart--discount">
+                        <?php echo esc_html__('Saved:', 'himuon-flex-cart'); ?>
+                        <?php echo wp_kses_post($data['discount']['formatted']); ?>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -90,23 +96,42 @@ if (!defined('ABSPATH')) {
         <div class="himuon-cart--actions-content">
             <?php
             foreach ($data['actions'] as $action) {
-                if ($action['id'] === 'edit') {
-                    if (!empty($data['subscription']) || !empty($data['variation'])) {
-                        ?>
-                        <div class="<?php echo esc_attr($action['class']) ?>"
-                             data-cart-item-key="<?php echo esc_attr($data['cartItemKey']) ?>">
-                            <?php echo esc_html($action['label']) ?>
-                        </div>
-                        <?php
-                    }
-                } else {
-                    ?>
-                    <div class="<?php echo esc_attr($action['class']) ?>"
-                         data-cart-item-key="<?php echo esc_attr($data['cartItemKey']) ?>">
-                        <?php echo esc_html($action['label']) ?>
-                    </div>
-                    <?php
+                $isEdit = isset($action['id']) && $action['id'] === 'edit';
+                $canRenderEdit = !empty($data['subscription']) || !empty($data['variation']);
+
+                if ($isEdit && !$canRenderEdit) {
+                    continue;
                 }
+
+                $class = isset($action['class']) ? (string) $action['class'] : '';
+                $label = isset($action['label']) ? (string) $action['label'] : '';
+                $href = isset($action['href']) ? (string) $action['href'] : '';
+                $target = isset($action['target']) ? (string) $action['target'] : '';
+
+                $rel = '';
+                if ($target === '_blank') {
+                    $rel = 'noopener noreferrer';
+                }
+
+                if ($href !== '') {
+                    ?>
+                    <a class="<?php echo esc_attr($class); ?>"
+                       data-cart-item-key="<?php echo esc_attr($data['cartItemKey']); ?>"
+                       href="<?php echo esc_url($href); ?>"
+                       <?php echo $target !== '' ? 'target="' . esc_attr($target) . '"' : ''; ?>
+                       <?php echo $rel !== '' ? 'rel="' . esc_attr($rel) . '"' : ''; ?>>
+                        <?php echo esc_html($label); ?>
+                    </a>
+                    <?php
+                    continue;
+                }
+
+                ?>
+                <div class="<?php echo esc_attr($class); ?>"
+                     data-cart-item-key="<?php echo esc_attr($data['cartItemKey']) ?>">
+                    <?php echo esc_html($label) ?>
+                </div>
+                <?php
             }
             ?>
         </div>

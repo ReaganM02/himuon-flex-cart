@@ -131,8 +131,9 @@ final class CartItemView
         $subscription = self::subscription($cartItemKey, $cartItem, $product);
         $quantity = self::quantity($cartItemKey, $cartItem, $product);
         $actionHandler = self::actionHandler();
-        $actions = self::actions();
+        $actions = self::actions($cartItemKey, $cartItem, $product);
         $price = self::price($cartItemKey, $cartItem, $product);
+        $discount = self::discount($cartItemKey, $cartItem, $product);
 
         $args = [
             'cartItemKey' => $cartItemKey,
@@ -145,7 +146,8 @@ final class CartItemView
             'quantity' => $quantity,
             'actionHandler' => $actionHandler,
             'actions' => $actions,
-            'price' => $price
+            'price' => $price,
+            'discount' => $discount
         ];
         return $args;
     }
@@ -181,7 +183,7 @@ final class CartItemView
         return $thumbnail;
     }
 
-    private static function title(string $cartItemKey, array $cartItem, WC_Product $product)
+    public static function title(string $cartItemKey, array $cartItem, WC_Product $product)
     {
         $title = $product->get_name();
         if ($product->is_type('variation')) {
@@ -298,23 +300,26 @@ final class CartItemView
         );
     }
 
-    public static function actions()
+    public static function actions(string $cartItemKey, array $cartItem, WC_Product $product)
     {
         $actions = [
             [
                 'id' => 'edit',
                 'label' => __('Edit', 'himuon-flex-cart'),
-                'class' => 'himuon-cart--action-edit'
+                'class' => 'himuon-cart--action-edit',
             ],
             [
                 'id' => 'delete',
                 'label' => __('Delete', 'himuon-flex-cart'),
-                'class' => 'himuon-cart--action-delete'
+                'class' => 'himuon-cart--action-delete',
             ]
         ];
         return (array) apply_filters(
             'himuon_flex_cart_item_actions',
-            $actions
+            $actions,
+            $cartItem,
+            $cartItemKey,
+            $product
         );
     }
 
@@ -322,5 +327,33 @@ final class CartItemView
     {
         return $product->get_price();
     }
+
+    public static function discount(string $cartItemKey, array $cartItem, WC_Product $product)
+    {
+        $qty = max(1, (int) ($cartItem['quantity'] ?? 1));
+
+        // Coupon/line discount
+        $lineSubtotal = (float) ($cartItem['line_subtotal'] ?? 0);
+        $lineTotal = (float) ($cartItem['line_total'] ?? 0);
+        $lineDiscount = max(0, $lineSubtotal - $lineTotal);
+
+        // Sale discount fallback
+        $regular = (float) $product->get_regular_price();
+        $active = (float) $product->get_price();
+        $saleDiscount = max(0, ($regular - $active) * $qty);
+
+        $amount = max($lineDiscount, $saleDiscount);
+        $percent = $regular > 0 ? round((($regular - $active) / $regular) * 100) : 0;
+
+        $discount = [
+            'amount' => $amount,
+            'formatted' => wc_price($amount),
+            'hasDiscount' => $amount > 0,
+            'percent' => max(0, $percent),
+        ];
+
+        return (array) apply_filters('himuon_flex_cart_item_discount', $discount, $cartItem, $cartItemKey, $product);
+    }
+
 
 }
