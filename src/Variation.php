@@ -29,7 +29,7 @@ final class Variation
         $removedSubscriptionOptionsLayout = Subscription::removeSubscriptionOptionsLayout();
         $removedPriceFilters = Subscription::removeSubscriptionPriceFilters();
 
-        self::addVariationDescriptionFilter();
+        self::addVariationDataFilters();
         $viewData['available_variations'] = $parent->get_available_variations();
 
         remove_action('woocommerce_single_variation', 'woocommerce_single_variation_add_to_cart_button', 20);
@@ -55,19 +55,19 @@ final class Variation
                 unset($GLOBALS['product']);
             }
 
-            self::removeVariationDescriptionFilter();
+            self::removeVariationDataFilters();
 
         }
 
         return $form;
     }
 
-    public static function addVariationDescriptionFilter()
+    public static function addVariationDataFilters()
     {
         add_filter('woocommerce_available_variation', [self::class, 'variationData'], 10, 3);
     }
 
-    public static function removeVariationDescriptionFilter()
+    public static function removeVariationDataFilters()
     {
         remove_filter('woocommerce_available_variation', [self::class, 'variationData'], 10);
     }
