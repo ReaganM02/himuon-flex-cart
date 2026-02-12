@@ -16,7 +16,7 @@ if (!defined('ABSPATH')) {
 
         <?php if ($data['showCounter']): ?>
             <span class="himuon-cart--item-counter">
-                <?php echo absint($data['counter']) ?>
+                (<?php echo absint($data['counter']) ?>)
             </span>
         <?php endif; ?>
     </div>
