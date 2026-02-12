@@ -45,16 +45,9 @@ if (!defined('ABSPATH')) {
                     <?php do_action('himuon_flex_cart_after_cart_item_variation', $data); ?>
                 <?php endif; ?>
                 <!-- End of Variation -->
-
-                <!-- Start of Subscription -->
-                <?php if (!empty($data['subscription'])): ?>
-                    <?php do_action('himuon_flex_cart_before_cart_item_subscription', $data); ?>
-                    <div class="himuon-cart--purchase-type">
-                        <?php echo esc_html($data['subscription']) ?>
-                    </div>
-                    <?php do_action('himuon_flex_cart_after_cart_item_subscription', $data); ?>
-                <?php endif; ?>
-                <!-- End of Subscription -->
+                <div class="himuon-cart--price">
+                    <?php echo $data['price'] ?>
+                </div>
             </div>
             <div class="himuon-cart--right-content">
                 <?php do_action('himuon_flex_cart_before_cart_item_quantity', $data); ?>
@@ -77,9 +70,6 @@ if (!defined('ABSPATH')) {
                     </button>
                 </div>
                 <?php do_action('himuon_flex_cart_before_after_item_quantity', $data); ?>
-                <div class="himuon-cart--price">
-                    <?php echo wc_price($data['price']) ?>
-                </div>
                 <?php if (!empty($data['discount']['hasDiscount'])): ?>
                     <div class="himuon-cart--discount">
                         <?php echo esc_html__('Saved:', 'himuon-flex-cart'); ?>
