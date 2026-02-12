@@ -2,9 +2,7 @@
 
 namespace Himuon\Flex\Cart\Frontend;
 
-use WCS_ATT_Cart;
 use WC_Product;
-use WC_Product_Variable;
 use WC_Product_Variation;
 // Exit if accessed directly.
 if (!defined('ABSPATH')) {
@@ -128,7 +126,6 @@ final class CartItemView
         $permalink = self::permalink($cartItemKey, $cartItem, $product);
         $title = self::title($cartItemKey, $cartItem, $product);
         $variation = self::variationData($cartItemKey, $cartItem, $product);
-        $subscription = self::subscription($cartItemKey, $cartItem, $product);
         $quantity = self::quantity($cartItemKey, $cartItem, $product);
         $actionHandler = self::actionHandler();
         $actions = self::actions($cartItemKey, $cartItem, $product);
@@ -142,7 +139,6 @@ final class CartItemView
             'title' => $title,
             'cartItem' => $cartItem,
             'variation' => $variation,
-            'subscription' => $subscription,
             'quantity' => $quantity,
             'actionHandler' => $actionHandler,
             'actions' => $actions,
@@ -217,52 +213,6 @@ final class CartItemView
         );
     }
 
-    public static function subscription(string $cartItemKey, array $cartItem, WC_Product $product)
-    {
-        if (!class_exists('WCS_ATT_Cart') || !class_exists('WCS_ATT_Product_Schemes')) {
-            return '';
-        }
-
-        $subscriptionKey = WCS_ATT_Cart::get_subscription_scheme($cartItem);
-
-        if (empty($subscriptionKey)) {
-            return '';
-        }
-
-        $scheme = \WCS_ATT_Product_Schemes::get_subscription_scheme($product, 'object', $subscriptionKey);
-        if (!$scheme) {
-            return '';
-        }
-
-        $interval = (int) $scheme->get_interval();
-        $period = (string) $scheme->get_period();
-
-        if (function_exists('wcs_get_subscription_period_interval_strings') && function_exists('wcs_get_subscription_period_strings')) {
-            $intervalLabel = wcs_get_subscription_period_interval_strings($interval);
-            $periodLabel = wcs_get_subscription_period_strings(1, $period);
-            $label = trim($intervalLabel . ' ' . $periodLabel);
-        } else {
-            $label = sprintf(
-                esc_html__('Every %1$d %2$s', 'himuon-flex-cart'),
-                $interval,
-                $period
-            );
-        }
-
-        $prefix = esc_html__('Delivers', 'himuon-flex-cart');
-        $label = trim($prefix . ' ' . $label);
-
-        return (string) apply_filters(
-            'himuon_flex_cart_item_subscription_label',
-            $label,
-            $cartItem,
-            $cartItemKey,
-            $product,
-            $subscriptionKey,
-            $scheme
-        );
-    }
-
     public static function quantity(string $cartItemKey, array $cartItem, WC_Product $product)
     {
         $qty = (int) $cartItem['quantity'];
@@ -325,7 +275,8 @@ final class CartItemView
 
     public static function price(string $cartItemKey, array $cartItem, WC_Product $product)
     {
-        return $product->get_price();
+        $qty = max(1, (int) ($cartItem['quantity'] ?? 1));
+        return WC()->cart->get_product_subtotal($product, $qty);
     }
 
     public static function discount(string $cartItemKey, array $cartItem, WC_Product $product)
