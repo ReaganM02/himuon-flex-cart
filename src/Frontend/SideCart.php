@@ -5,7 +5,7 @@ namespace Himuon\Flex\Cart\Frontend;
 use Himuon\Flex\Cart\Subscription;
 use Himuon\Flex\Cart\Variation;
 use WC_Product_Variable;
-use WC_Product_Variation;
+use WCS_ATT_Product_Schemes;
 
 // Exit if accessed directly.
 if (!defined('ABSPATH')) {
@@ -142,12 +142,6 @@ final class SideCart
         ]);
     }
 
-    public function filterVariationDisplay($variationData, $product, $variation)
-    {
-        $variationData['variation_description'] = '';
-        return $variationData;
-    }
-
     public function updateCartItemVariation()
     {
         check_ajax_referer('himuon_flex_cart', 'nonce');
@@ -207,10 +201,34 @@ final class SideCart
         $existing = $cartItem['variation'] ?? [];
         $new = $variation ?? [];
 
+        $existingSubscriptionScheme = isset($cartItem['wcsatt_data']['active_subscription_scheme'])
+            ? $cartItem['wcsatt_data']['active_subscription_scheme']
+            : null;
+
+        $newSubscriptionScheme = $existingSubscriptionScheme;
+        $subscriptionSelectionPosted = false;
+
+        if (isset($_POST['convert_to_sub'])) {
+            $subscriptionSelectionPosted = true;
+            $postedScheme = wc_clean(wp_unslash($_POST['convert_to_sub']));
+            if (class_exists('WCS_ATT_Product_Schemes')) {
+                $newSubscriptionScheme = WCS_ATT_Product_Schemes::parse_subscription_scheme_key($postedScheme);
+            } else {
+                $newSubscriptionScheme = '' !== $postedScheme ? (string) $postedScheme : false;
+            }
+        }
+
         ksort($existing);
         ksort($new);
 
-        if ($existing === $new) {
+        $existingSubscriptionValue = (false === $existingSubscriptionScheme || null === $existingSubscriptionScheme)
+            ? '0'
+            : (string) $existingSubscriptionScheme;
+        $newSubscriptionValue = (false === $newSubscriptionScheme || null === $newSubscriptionScheme)
+            ? '0'
+            : (string) $newSubscriptionScheme;
+
+        if ($existing === $new && $existingSubscriptionValue === $newSubscriptionValue) {
             wp_send_json_success([
                 'no_change' => true,
                 'variation' => $existing,
@@ -220,7 +238,13 @@ final class SideCart
         $productId = (int) $cartItem['product_id'];
         $variationId = 0;
         if ($parent instanceof WC_Product_Variable) {
-            $variationId = (int) $parent->get_matching_variation($variation);
+            $dataStore = \WC_Data_Store::load('product');
+            if ($dataStore && is_callable([$dataStore, 'find_matching_product_variation'])) {
+                $variationId = (int) $dataStore->find_matching_product_variation($parent, $variation);
+            } else {
+                // Backward compatibility with older WooCommerce versions.
+                $variationId = (int) $parent->get_matching_variation($variation);
+            }
         }
 
         if (!$variationId) {
@@ -233,13 +257,22 @@ final class SideCart
         $oldProductId = (int) $cartItem['product_id'];
         $oldVariationId = (int) $cartItem['variation_id'];
         $quantity = (int) $cartItem['quantity'];
-        $cartItemData = $cartItem['cart_item_data'] ?? [];
+        $oldCartItemData = $cartItem['cart_item_data'] ?? [];
         if (isset($cartItem['wcsatt_data'])) {
-            $cartItemData['wcsatt_data'] = $cartItem['wcsatt_data'];
+            $oldCartItemData['wcsatt_data'] = $cartItem['wcsatt_data'];
+        }
+
+        $newCartItemData = $oldCartItemData;
+        if ($subscriptionSelectionPosted) {
+            $wcsattData = isset($newCartItemData['wcsatt_data']) && is_array($newCartItemData['wcsatt_data'])
+                ? $newCartItemData['wcsatt_data']
+                : [];
+            $wcsattData['active_subscription_scheme'] = $newSubscriptionScheme;
+            $newCartItemData['wcsatt_data'] = $wcsattData;
         }
 
         WC()->cart->remove_cart_item($cartItemKey);
-        $newKey = WC()->cart->add_to_cart($productId, $quantity, $variationId, $variation, $cartItemData);
+        $newKey = WC()->cart->add_to_cart($productId, $quantity, $variationId, $variation, $newCartItemData);
 
         if (!$newKey) {
             // Restore original item if update fails.
@@ -248,7 +281,7 @@ final class SideCart
                 $quantity,
                 $oldVariationId,
                 $existing,
-                $cartItemData
+                $oldCartItemData
             );
             wp_send_json_error(['message' => 'Unable to update item.'], 500);
         }

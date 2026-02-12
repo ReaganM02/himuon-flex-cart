@@ -3,6 +3,8 @@
 namespace Himuon\Flex\Cart;
 
 use Himuon\Flex\Cart\Frontend\EditCartItemView;
+use Himuon\Flex\Cart\Subscription;
+use Himuon\Flex\Cart\Helper;
 
 // Exit if accessed directly.
 if (!defined('ABSPATH')) {
@@ -30,6 +32,7 @@ final class Variation
         $removedPriceFilters = Subscription::removeSubscriptionPriceFilters();
 
         self::addVariationDataFilters();
+        Subscription::renderOptions($cartItem, $cartItemKey);
         $viewData['available_variations'] = $parent->get_available_variations();
 
         remove_action('woocommerce_single_variation', 'woocommerce_single_variation_add_to_cart_button', 20);
@@ -56,6 +59,7 @@ final class Variation
             }
 
             self::removeVariationDataFilters();
+            Subscription::removeRenderOptionsHook();
 
         }
 
@@ -76,6 +80,20 @@ final class Variation
     {
         // Remove description
         $variationData['variation_description'] = '';
+
+        // Ensure price is always visible in edit panel, even when WooCommerce returns empty
+        $priceHtml = isset($variationData['price_html']) ? (string) $variationData['price_html'] : '';
+        if ('' === trim(wp_strip_all_tags($priceHtml))) {
+            $fallbackPriceHtml = (string) $variation->get_price_html();
+
+            if ('' === trim(wp_strip_all_tags($fallbackPriceHtml))) {
+                $displayPrice = wc_get_price_to_display($variation);
+                $fallbackPriceHtml = wc_price($displayPrice);
+            }
+
+            $variationData['price_html'] = $fallbackPriceHtml;
+        }
+
         return $variationData;
     }
 
