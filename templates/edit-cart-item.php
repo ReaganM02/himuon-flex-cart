@@ -48,16 +48,8 @@ $context = [
     <?php do_action('himuon_flex_cart_after_edit_panel_title', $context, $data); ?>
     <?php wc_get_template('single-product/add-to-cart/variable.php', $args); ?>
 </div>
-<div class="himuon-cart--variation-action">
-    <?php if (!empty($data['permalink'])): ?>
-        <a class="himuon-cart--variation-link"
-           href="<?php echo esc_url($data['permalink']); ?>">
-            <?php echo esc_html($data['viewLabel']) ?>
-        </a>
-    <?php endif; ?>
-    <button type="button"
-            class="himuon-cart--variation-update-cart-item"
-            data-cart-item-key="<?php echo esc_attr($data['cartItemKey']) ?>">
-        <?php echo esc_html($data['updateLabel']); ?>
-    </button>
-</div>
+<?php
+$actionData = $data;
+$actionData['updateButtonClass'] = 'himuon-cart--variation-update-cart-item';
+Helper::template('edit-item-actions.php', $actionData);
+?>
