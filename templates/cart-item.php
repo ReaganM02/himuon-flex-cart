@@ -87,7 +87,7 @@ if (!defined('ABSPATH')) {
             <?php
             foreach ($data['actions'] as $action) {
                 $isEdit = isset($action['id']) && $action['id'] === 'edit';
-                $canRenderEdit = !empty($data['subscription']) || !empty($data['variation']);
+                $canRenderEdit = $data['subscription'] || !empty($data['variation']);
 
                 if ($isEdit && !$canRenderEdit) {
                     continue;
