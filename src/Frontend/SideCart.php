@@ -3,7 +3,6 @@
 namespace Himuon\Flex\Cart\Frontend;
 
 use Himuon\Flex\Cart\Helper;
-use Himuon\Flex\Cart\Subscription;
 use Himuon\Flex\Cart\Variation;
 use WCS_ATT_Cart;
 use WC_Product_Variable;
@@ -54,10 +53,25 @@ final class SideCart
             [],
             HIMUON_FLEX_CART_VERSION
         );
+        $themeCss = $this->buildThemeVariablesCss();
+        if ('' !== $themeCss) {
+            wp_add_inline_style('himuon-flex-cart', $themeCss);
+        }
 
         wp_enqueue_script(
             'himuon-flex-cart',
             HIMUON_FLEX_CART_URL . 'assets/js/himuon-flex-cart.js',
+            ['jquery', 'wc-cart-fragments'],
+            HIMUON_FLEX_CART_VERSION,
+            [
+                'strategy' => 'defer',
+                'in_footer' => true
+            ]
+        );
+
+        wp_enqueue_script(
+            'himuon-flex-cart-add-to-cart',
+            HIMUON_FLEX_CART_URL . 'assets/js/himuon-flex-cart-add-to-cart.js',
             ['jquery', 'wc-cart-fragments'],
             HIMUON_FLEX_CART_VERSION,
             [
@@ -72,6 +86,31 @@ final class SideCart
             'nonce' => wp_create_nonce('himuon_flex_cart'),
             'url' => admin_url('admin-ajax.php')
         ]);
+    }
+
+    private function buildThemeVariablesCss()
+    {
+        $colors = apply_filters('himuon_flex_cart_theme_colors', []);
+        if (!is_array($colors) || [] === $colors) {
+            return '';
+        }
+
+        $css = '';
+        foreach ($colors as $name => $value) {
+            $name = sanitize_key((string) $name);
+            if ('' === $name) {
+                continue;
+            }
+
+            $value = sanitize_hex_color((string) $value);
+            if (null === $value) {
+                continue;
+            }
+
+            $css .= '--himuon-cart--' . $name . ':' . $value . ';';
+        }
+
+        return '' === $css ? '' : '.himuon-flex-cart-plugin{' . $css . '}';
     }
 
     public function cartItemEdit()
