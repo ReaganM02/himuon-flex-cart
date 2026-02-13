@@ -47,7 +47,7 @@ jQuery(function ($) {
         himuonVariationImagePatched = true
         const original = $.fn.wc_variations_image_update
         $.fn.wc_variations_image_update = function (variation) {
-            if (this.closest('.himuon-cart--variation-selection').length) {
+            if (this.closest('.himuon-flex-cart-plugin, .himuon-cart--edit-content, .himuon-cart--form-wrapper').length) {
                 return this
             }
             const context = this
@@ -259,7 +259,7 @@ jQuery(function ($) {
         $formData.push({ name: 'cart_item_key', value: cartItemKey })
         $formData.push({ name: 'nonce', value: himuonFlexCart.nonce })
 
-        $btn = $(updateBtn)
+        const $btn = $(updateBtn)
 
         if ($btn.data('updatingVariationCartItem')) return
 
@@ -292,6 +292,54 @@ jQuery(function ($) {
             complete: () => {
                 setSideCartLoading(false)
                 $btn.data('updatingVariationCartItem', false)
+            }
+        })
+    }
+
+    const updateCartItemSubscription = (updateBtn, form, cartItemKey) => {
+        if (typeof wc_cart_fragments_params === 'undefined' || !himuonFlexCart || !himuonFlexCart.nonce) {
+            return
+        }
+        if (!form) {
+            return
+        }
+
+        const $form = $(form)
+        const $formData = $form.serializeArray()
+        $formData.push({ name: 'cart_item_key', value: cartItemKey })
+        $formData.push({ name: 'nonce', value: himuonFlexCart.nonce })
+
+        const $btn = $(updateBtn)
+        if ($btn.data('updatingSubscriptionCartItem')) return
+
+        $btn.data('updatingSubscriptionCartItem', true)
+        setSideCartLoading(true)
+        $.ajax({
+            type: 'post',
+            url: wc_cart_fragments_params.wc_ajax_url.toString().replace('%%endpoint%%', 'himuon_update_cart_item_subscription'),
+            data: $formData,
+            success: (response) => {
+                const payload = response && response.data ? response.data : response
+
+                if (payload && payload.no_change) {
+                    const wrapper = document.querySelector('.himuon-cart--edit-item-wrapper')
+                    if (wrapper) {
+                        wrapper.classList.remove('himuon-cart--editing')
+                    }
+                    return
+                }
+
+                const fragments = payload && payload.fragments ? payload.fragments : null
+                if (fragments) {
+                    $.each(fragments, function (key, value) {
+                        $(key).replaceWith(value)
+                    })
+                    $(document.body).trigger('wc_fragments_refreshed')
+                }
+            },
+            complete: () => {
+                setSideCartLoading(false)
+                $btn.data('updatingSubscriptionCartItem', false)
             }
         })
     }
@@ -355,6 +403,7 @@ jQuery(function ($) {
         $el.data('editing', true)
         setSideCartLoading(true)
         $editContent.removeClass('is-loaded').addClass('is-loading').empty()
+        let isEditLoaded = false
         $.ajax({
             type: 'post',
             url: wc_cart_fragments_params.wc_ajax_url.toString().replace('%%endpoint%%', 'himuon_cart_item_edit'),
@@ -366,20 +415,29 @@ jQuery(function ($) {
                 $el.data('editing', false)
                 setSideCartLoading(false)
                 $editContent.removeClass('is-loading')
+                if (isEditLoaded) {
+                    $editContent.addClass('is-loaded')
+                }
             },
             success: (data) => {
                 $editContent.html(data.data.form)
-                $editContent.addClass('is-loaded')
+                isEditLoaded = true
                 const $form = $editContent.find('form.variations_form')
                 if ($form.length) {
+                    bindEditVariationFormEvents($form, $editContent.get(0))
+                    updateEditVariationPreview($editContent.get(0), null, true)
                     $form.wc_variation_form()
-                    $form.trigger('check_variations')
-                    $form.find('select').trigger('change')
 
                     for (const [key, value] of Object.entries(data.data.attributes)) {
                         $form.find(`[name="${key}"]`).val(value)
                     }
+
+                    $form.trigger('check_variations')
+                    $form.find('select').trigger('change')
                 }
+            },
+            error: () => {
+                $el.removeClass('himuon-cart--editing')
             }
         })
     }
@@ -443,6 +501,21 @@ jQuery(function ($) {
 
         const form = document.querySelector('.himuon-cart--edit-content form')
         updateCartItemVariation(updateBtn, form, cartItemKey)
+    })
+
+
+
+    // Update subscription for single product
+    document.addEventListener('click', (e) => {
+        const target = e.target
+        const updateBtn = target.closest('.himuon-cart--subscription-update-cart-item')
+        if (!updateBtn || !(updateBtn instanceof HTMLButtonElement)) return
+
+        const { cartItemKey } = updateBtn.dataset
+        if (!cartItemKey) return
+
+        const form = document.querySelector('.himuon-cart--edit-content .himuon-cart--subscription-edit-form')
+        updateCartItemSubscription(updateBtn, form, cartItemKey)
     })
 
     // Cart Item Actions
@@ -550,6 +623,17 @@ jQuery(function ($) {
         }
     })
 
+    // Close Edit Cart Item via close icon/button
+    document.addEventListener('click', (e) => {
+        const closeEditPanel = e.target.closest('.himuon-cart--close-edit-panel')
+        if (!closeEditPanel) return
+
+        const wrapper = document.querySelector('.himuon-cart--edit-item-wrapper')
+        if (!wrapper) return
+
+        wrapper.classList.remove('himuon-cart--editing')
+    })
+
 
     // Track Variation Value
     document.addEventListener('change', (e) => {
@@ -567,7 +651,83 @@ jQuery(function ($) {
     // Apply variation image patch early if available.
     patchVariationImageUpdate()
 
-    let lastVariation = null
+    const getEditContentVariation = (editContent) => {
+        if (!editContent) return null
+        const form = editContent.querySelector('form.variations_form')
+        if (!form) return null
+        return $(form).data('himuonVariation') || null
+    }
+
+    const updateEditVariationPreview = (editContent, variation, useInitial) => {
+        if (!editContent) return
+        const preview = editContent.querySelector('.himuon-cart--variation-preview')
+        if (!preview) return
+
+        const imageData = variation && variation.image ? variation.image : null
+        const nextSrc = useInitial ? preview.dataset.initialSrc : (imageData && imageData.src ? imageData.src : '')
+        const nextSrcset = useInitial ? preview.dataset.initialSrcset : (imageData && imageData.srcset ? imageData.srcset : '')
+        const nextSizes = useInitial ? preview.dataset.initialSizes : (imageData && imageData.sizes ? imageData.sizes : '')
+        const nextAlt = useInitial ? preview.dataset.initialAlt : (imageData && imageData.alt ? imageData.alt : (preview.dataset.initialAlt || ''))
+
+        if (!nextSrc) {
+            return
+        }
+
+        let img = preview.querySelector('img.himuon-cart--variation-preview-image')
+        if (!img) {
+            img = document.createElement('img')
+            img.className = 'himuon-cart--variation-preview-image'
+            preview.appendChild(img)
+        }
+
+        img.src = nextSrc
+        if (nextSrcset) {
+            img.srcset = nextSrcset
+        } else {
+            img.removeAttribute('srcset')
+        }
+
+        if (nextSizes) {
+            img.sizes = nextSizes
+        } else {
+            img.removeAttribute('sizes')
+        }
+
+        img.alt = nextAlt
+    }
+
+    const bindEditVariationFormEvents = ($form, editContent) => {
+        if (!$form || !$form.length || !editContent) {
+            return
+        }
+
+        $form.off('.himuonSideCart')
+
+        // Keep side-cart variation events from leaking to document-level listeners.
+        $form.on('found_variation.himuonSideCart', function (e, variation) {
+            console.log(variation)
+            e.stopPropagation()
+            $(this).data('himuonVariation', variation || null)
+            updateEditVariationPreview(editContent, variation || null, false)
+            updateVariationButtonState(editContent)
+        })
+
+        $form.on('reset_data.himuonSideCart', function (e) {
+            e.stopPropagation()
+            $(this).data('himuonVariation', null)
+            updateEditVariationPreview(editContent, null, true)
+            updateVariationButtonState(editContent)
+        })
+
+        $form.on('show_variation.himuonSideCart hide_variation.himuonSideCart woocommerce_variation_has_changed.himuonSideCart', function (e) {
+            e.stopPropagation()
+        })
+
+        $form.on('change.himuonSideCart', 'select', function (e) {
+            e.stopPropagation()
+            updateVariationButtonState(editContent)
+        })
+    }
 
     const updateVariationButtonState = (editContent) => {
         const updateBtn = editContent.querySelector('.himuon-cart--variation-update-cart-item')
@@ -576,7 +736,7 @@ jQuery(function ($) {
         const selects = Array.from(editContent.querySelectorAll('select'))
         const anyEmpty = selects.some((select) => select.value.trim() === '')
 
-        const v = lastVariation
+        const v = getEditContentVariation(editContent)
         const inStock = v && (v.is_in_stock === true || v.is_in_stock === '1')
         const purchasable = v && (v.is_purchasable === true || v.is_purchasable === '1')
 
@@ -584,18 +744,6 @@ jQuery(function ($) {
         updateBtn.disabled = shouldDisable
         updateBtn.toggleAttribute('disabled', shouldDisable)
     }
-
-    $(document).on('found_variation', 'form.variations_form', function (e, variation) {
-        lastVariation = variation || null
-        const editContent = this.closest('.himuon-cart--edit-content')
-        if (editContent) updateVariationButtonState(editContent)
-    })
-
-    $(document).on('reset_data', 'form.variations_form', function () {
-        lastVariation = null
-        const editContent = this.closest('.himuon-cart--edit-content')
-        if (editContent) updateVariationButtonState(editContent)
-    })
 
     document.addEventListener('change', (e) => {
         const editContent = e.target.closest('.himuon-cart--edit-content')
