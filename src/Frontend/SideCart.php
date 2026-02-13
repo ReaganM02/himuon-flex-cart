@@ -2,8 +2,10 @@
 
 namespace Himuon\Flex\Cart\Frontend;
 
+use Himuon\Flex\Cart\Helper;
 use Himuon\Flex\Cart\Subscription;
 use Himuon\Flex\Cart\Variation;
+use WCS_ATT_Cart;
 use WC_Product_Variable;
 use WCS_ATT_Product_Schemes;
 
@@ -29,6 +31,10 @@ final class SideCart
         add_action('wp_ajax_himuon_update_cart_item_variation', [$this, 'updateCartItemVariation']);
         add_action('wp_ajax_nopriv_himuon_update_cart_item_variation', [$this, 'updateCartItemVariation']);
         add_action('wc_ajax_himuon_update_cart_item_variation', [$this, 'updateCartItemVariation']);
+
+        add_action('wp_ajax_himuon_update_cart_item_subscription', [$this, 'updateCartItemSubscription']);
+        add_action('wp_ajax_nopriv_himuon_update_cart_item_subscription', [$this, 'updateCartItemSubscription']);
+        add_action('wc_ajax_himuon_update_cart_item_subscription', [$this, 'updateCartItemSubscription']);
 
         add_action('wp_ajax_himuon_delete_cart_item', [$this, 'deleteCartItem']);
         add_action('wp_ajax_nopriv_himuon_delete_cart_item', [$this, 'deleteCartItem']);
@@ -77,6 +83,12 @@ final class SideCart
         $cartItem = WC()->cart->get_cart_item($cartItemKey);
 
         $form = Variation::getForm($cartItem, $cartItemKey);
+        $attributes = isset($cartItem['variation']) && is_array($cartItem['variation']) ? $cartItem['variation'] : [];
+
+        if (!$form) {
+            $form = $this->renderSimpleSubscriptionForm($cartItem, $cartItemKey);
+            $attributes = [];
+        }
 
         if (!$form) {
             wp_send_json_error(__('Invalid parent product', 'himuon-flex-cart'));
@@ -84,7 +96,7 @@ final class SideCart
 
         $result = [
             'form' => $form,
-            'attributes' => $cartItem['variation']
+            'attributes' => $attributes
         ];
         wp_send_json_success($result);
     }
@@ -311,6 +323,78 @@ final class SideCart
         ]);
     }
 
+    public function updateCartItemSubscription()
+    {
+        check_ajax_referer('himuon_flex_cart', 'nonce');
+
+        if (!function_exists('WC') || !WC()->cart) {
+            wp_send_json_error(['message' => 'Cart not available.'], 400);
+        }
+
+        $cartItemKey = isset($_POST['cart_item_key']) ? wc_clean(wp_unslash($_POST['cart_item_key'])) : '';
+        if ('' === $cartItemKey) {
+            wp_send_json_error(['message' => 'Invalid cart data.'], 400);
+        }
+
+        $cart = WC()->cart->get_cart();
+        $cartItem = isset($cart[$cartItemKey]) ? $cart[$cartItemKey] : null;
+        if (!$cartItem || empty($cartItem['data'])) {
+            wp_send_json_error(['message' => __('Invalid Cart Item', 'himuon-flex-cart')], 400);
+        }
+
+        $product = $cartItem['data'];
+        if (!class_exists('WCS_ATT_Product_Schemes') || !WCS_ATT_Product_Schemes::has_subscription_schemes($product)) {
+            wp_send_json_error(['message' => __('Product is not subscription editable.', 'himuon-flex-cart')], 400);
+        }
+
+        $postedScheme = isset($_POST['convert_to_sub']) ? wc_clean(wp_unslash($_POST['convert_to_sub'])) : null;
+        if (null === $postedScheme) {
+            wp_send_json_error(['message' => __('Missing subscription option.', 'himuon-flex-cart')], 400);
+        }
+
+        $newScheme = WCS_ATT_Product_Schemes::parse_subscription_scheme_key($postedScheme);
+        $availableSchemes = WCS_ATT_Product_Schemes::get_subscription_schemes($product);
+        $hasForcedSubscription = WCS_ATT_Product_Schemes::has_forced_subscription_scheme($product);
+
+        if (false === $newScheme && $hasForcedSubscription) {
+            wp_send_json_error(['message' => __('This item is available only as a subscription.', 'himuon-flex-cart')], 400);
+        }
+
+        if (false !== $newScheme && !isset($availableSchemes[$newScheme])) {
+            wp_send_json_error(['message' => __('Invalid subscription option.', 'himuon-flex-cart')], 400);
+        }
+
+        $existingScheme = isset($cartItem['wcsatt_data']['active_subscription_scheme'])
+            ? $cartItem['wcsatt_data']['active_subscription_scheme']
+            : null;
+
+        if ($existingScheme === $newScheme) {
+            wp_send_json_success([
+                'no_change' => true,
+            ]);
+        }
+
+        if (!isset(WC()->cart->cart_contents[$cartItemKey]['wcsatt_data']) || !is_array(WC()->cart->cart_contents[$cartItemKey]['wcsatt_data'])) {
+            WC()->cart->cart_contents[$cartItemKey]['wcsatt_data'] = [];
+        }
+        WC()->cart->cart_contents[$cartItemKey]['wcsatt_data']['active_subscription_scheme'] = $newScheme;
+
+        if (class_exists('WCS_ATT_Cart')) {
+            WCS_ATT_Cart::apply_subscription_schemes(WC()->cart);
+        }
+
+        WC()->cart->calculate_totals();
+
+        $fragments = apply_filters('woocommerce_add_to_cart_fragments', []);
+        $cartHash = WC()->cart->get_cart_hash();
+
+        wp_send_json_success([
+            'cart_item_key' => $cartItemKey,
+            'fragments' => $fragments,
+            'cart_hash' => $cartHash,
+        ]);
+    }
+
     public function deleteCartItem()
     {
         check_ajax_referer('himuon_flex_cart', 'nonce');
@@ -340,6 +424,18 @@ final class SideCart
             'fragments' => $fragments,
             'cart_hash' => $cartHash,
         ]);
+    }
+
+    private function renderSimpleSubscriptionForm($cartItem, $cartItemKey)
+    {
+        $viewData = EditSubscriptionItemView::build($cartItem, $cartItemKey);
+        if (!$viewData) {
+            return false;
+        }
+
+        ob_start();
+        Helper::template('edit-subscription-item.php', $viewData);
+        return ob_get_clean();
     }
 
 }
