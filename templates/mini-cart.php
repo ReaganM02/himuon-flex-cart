@@ -2,7 +2,6 @@
 
 use Himuon\Flex\Cart\Frontend\CartItemView;
 use Himuon\Flex\Cart\Helper;
-use WpOrg\Requests\Response\Headers;
 // Exit if accessed directly.
 if (!defined('ABSPATH')) {
     exit;
