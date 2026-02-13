@@ -4,6 +4,7 @@ namespace Himuon\Flex\Cart\Frontend;
 
 use WC_Product;
 use WC_Product_Variation;
+use WCS_ATT_Product_Schemes;
 // Exit if accessed directly.
 if (!defined('ABSPATH')) {
     exit;
@@ -126,6 +127,7 @@ final class CartItemView
         $permalink = self::permalink($cartItemKey, $cartItem, $product);
         $title = self::title($cartItemKey, $cartItem, $product);
         $variation = self::variationData($cartItemKey, $cartItem, $product);
+        $subscription = self::hasSubscription($cartItemKey, $cartItem, $product);
         $quantity = self::quantity($cartItemKey, $cartItem, $product);
         $actionHandler = self::actionHandler();
         $actions = self::actions($cartItemKey, $cartItem, $product);
@@ -139,6 +141,7 @@ final class CartItemView
             'title' => $title,
             'cartItem' => $cartItem,
             'variation' => $variation,
+            'subscription' => $subscription,
             'quantity' => $quantity,
             'actionHandler' => $actionHandler,
             'actions' => $actions,
@@ -207,6 +210,23 @@ final class CartItemView
         return (string) apply_filters(
             'himuon_flex_cart_item_variation',
             $variationData,
+            $cartItem,
+            $cartItemKey,
+            $product
+        );
+    }
+
+    public static function hasSubscription(string $cartItemKey, array $cartItem, WC_Product $product)
+    {
+        $hasCartSubscriptionData = !empty($cartItem['wcsatt_data']);
+        $hasProductSubscriptionSchemes = class_exists('WCS_ATT_Product_Schemes')
+            && WCS_ATT_Product_Schemes::has_subscription_schemes($product);
+
+        $hasSubscription = $hasCartSubscriptionData || $hasProductSubscriptionSchemes;
+
+        return (bool) apply_filters(
+            'himuon_flex_cart_item_has_subscription',
+            $hasSubscription,
             $cartItem,
             $cartItemKey,
             $product
