@@ -1,6 +1,5 @@
 <?php
-
-use Himuon\Flex\Cart\Frontend\CartItemView;
+use Himuon\Flex\Cart\Frontend\SideCartView;
 use Himuon\Flex\Cart\Helper;
 // Exit if accessed directly.
 if (!defined('ABSPATH')) {
@@ -18,7 +17,7 @@ if (function_exists('WC') && WC()->cart) {
      aria-label="<?php echo esc_attr__('Open cart', 'himuon-flex-cart'); ?>">
     <span class="himuon-cart--mini-icon"
           aria-hidden="true">
-        <?php echo wp_kses(CartItemView::miniCartIcon(), Helper::allowSVG()) ?>
+        <?php echo wp_kses(SideCartView::miniCartIcon(), Helper::allowSVG()) ?>
     </span>
     <span class="himuon-cart--mini-count"
           data-count="<?php echo esc_attr((string) absint($cartCount)); ?>">
