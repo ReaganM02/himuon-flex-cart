@@ -71,20 +71,6 @@ $cartSubtotal = $cart ? $cart->get_cart_subtotal() : '';
         <?php do_action('himuon_flex_cart_after_body') ?>
     </div>
     <?php if (!empty($itemsView)): ?>
-        <footer class="himuon-cart--footer">
-            <div class="himuon-cart--totals">
-                <span class="himuon-cart--totals-label"><?php echo esc_html__('Subtotal', 'himuon-flex-cart'); ?></span>
-                <span class="himuon-cart--totals-value"><?php echo wp_kses_post($cartSubtotal); ?></span>
-            </div>
-            <a class="himuon-cart--checkout"
-               href="<?php echo esc_url(wc_get_checkout_url()); ?>">
-                <?php echo esc_html__('Checkout', 'himuon-flex-cart'); ?>
-            </a>
-        </footer>
-        <div class="himuon-cart--edit-item-wrapper">
-            <div class="himuon-cart--edit-item-overlay"></div>
-            <div class="himuon-cart--edit-content">
-            </div>
-        </div>
+        <?php Helper::template('footer.php') ?>
     <?php endif; ?>
 </aside>
