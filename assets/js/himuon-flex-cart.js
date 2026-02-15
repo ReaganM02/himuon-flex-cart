@@ -671,8 +671,6 @@ jQuery(function ($) {
 
         const imageData = variation && variation.image ? variation.image : null
         const nextSrc = useInitial ? preview.dataset.initialSrc : (imageData && imageData.src ? imageData.src : '')
-        const nextSrcset = useInitial ? preview.dataset.initialSrcset : (imageData && imageData.srcset ? imageData.srcset : '')
-        const nextSizes = useInitial ? preview.dataset.initialSizes : (imageData && imageData.sizes ? imageData.sizes : '')
         const nextAlt = useInitial ? preview.dataset.initialAlt : (imageData && imageData.alt ? imageData.alt : (preview.dataset.initialAlt || ''))
 
         if (!nextSrc) {
@@ -687,17 +685,8 @@ jQuery(function ($) {
         }
 
         img.src = nextSrc
-        if (nextSrcset) {
-            img.srcset = nextSrcset
-        } else {
-            img.removeAttribute('srcset')
-        }
-
-        if (nextSizes) {
-            img.sizes = nextSizes
-        } else {
-            img.removeAttribute('sizes')
-        }
+        img.removeAttribute('srcset')
+        img.removeAttribute('sizes')
 
         img.alt = nextAlt
     }
