@@ -2,7 +2,7 @@
 
 namespace Himuon\Flex\Cart;
 
-use Himuon\Flex\Cart\Frontend\SideCart;
+use Himuon\Flex\Cart\SideCart;
 
 // Exit if accessed directly.
 if (!defined('ABSPATH')) {
@@ -15,6 +15,9 @@ class Init
     {
         $sideCart = new SideCart();
         $sideCart->register();
+
+        $coupon = new Coupon();
+        $coupon->register();
 
     }
 }
