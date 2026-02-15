@@ -1,4 +1,12 @@
 jQuery(function ($) {
+    const isCouponListEnabled = () => {
+        return !!(
+            typeof himuonFlexCartCoupon !== 'undefined' &&
+            himuonFlexCartCoupon &&
+            himuonFlexCartCoupon.enableCouponList
+        )
+    }
+
     /**
      * =============================================================================
      * Coupon Panel State + Helpers
@@ -83,6 +91,9 @@ jQuery(function ($) {
     }
 
     const setCouponListLoading = (wrapper, isLoading) => {
+        if (!isCouponListEnabled()) {
+            return
+        }
         const formWrapper = getCouponFormWrapper(wrapper)
         if (!formWrapper) {
             return
@@ -100,6 +111,9 @@ jQuery(function ($) {
     }
 
     const updateCouponListHtml = (wrapper, html) => {
+        if (!isCouponListEnabled()) {
+            return
+        }
         const formWrapper = getCouponFormWrapper(wrapper)
         if (!formWrapper) {
             return
@@ -127,6 +141,9 @@ jQuery(function ($) {
     }
 
     const loadCouponList = (forceReload) => {
+        if (!isCouponListEnabled()) {
+            return
+        }
         if (typeof wc_cart_fragments_params === 'undefined' || !himuonFlexCartCoupon || !himuonFlexCartCoupon.nonce) {
             return
         }
@@ -271,7 +288,9 @@ jQuery(function ($) {
 
         e.preventDefault()
         openCouponPanel()
-        loadCouponList(false)
+        if (isCouponListEnabled()) {
+            loadCouponList(false)
+        }
     })
 
     document.addEventListener('click', (e) => {
@@ -367,7 +386,9 @@ jQuery(function ($) {
 
                 // Side-cart fragments replace coupon DOM; restore open state + notices on the new nodes.
                 restoreCouponPanelAfterRefresh(payload.notices_html || '')
-                loadCouponList(true)
+                if (isCouponListEnabled()) {
+                    loadCouponList(true)
+                }
             },
             error: () => {
                 updateCouponNotices(couponForm, fallbackCouponErrorNotice())
@@ -382,6 +403,9 @@ jQuery(function ($) {
      */
 
     document.addEventListener('click', (e) => {
+        if (!isCouponListEnabled()) {
+            return
+        }
         const target = getTargetElement(e)
         if (!target) {
             return
