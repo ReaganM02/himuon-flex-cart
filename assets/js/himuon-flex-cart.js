@@ -9,6 +9,7 @@ jQuery(function ($) {
     var himuonVariationImagePatched = false
     // Refresh fragments once on first open to pick up server-side changes without a page-load refresh.
     var hasRefreshedOnOpen = false
+    var isOpeningFromAddToCart = false
 
     const preloadVariationImage = (variation, onReady) => {
         if (!variation || !variation.image || !variation.image.src) {
@@ -129,7 +130,7 @@ jQuery(function ($) {
         const sideCart = document.querySelector('.himuon-flex-cart-plugin')
         if (!sideCart) return
 
-        if (!hasRefreshedOnOpen && typeof wc_cart_fragments_params !== 'undefined') {
+        if (!hasRefreshedOnOpen && !isOpeningFromAddToCart && typeof wc_cart_fragments_params !== 'undefined') {
             hasRefreshedOnOpen = true
             refreshSideCart()
         }
@@ -588,7 +589,12 @@ jQuery(function ($) {
 
     // Trigger when added to cart
     $(document.body).on('added_to_cart', function () {
-        $(document.body).one('wc_fragments_refreshed', openSideCart)
+        isOpeningFromAddToCart = true
+        $(document.body).one('wc_fragments_refreshed', function () {
+            openSideCart()
+            hasRefreshedOnOpen = true
+            isOpeningFromAddToCart = false
+        })
     })
 
     // Edit Cart Item 
@@ -749,5 +755,11 @@ jQuery(function ($) {
         const editContent = e.target.closest('.himuon-cart--edit-content')
         if (!editContent) return
         updateVariationButtonState(editContent)
+    })
+
+    // Listen for external loading requests (e.g. coupon JS)
+    document.addEventListener('himuon:cart-loading', (e) => {
+        const loading = !!(e && e.detail && e.detail.loading)
+        setSideCartLoading(loading)
     })
 })
