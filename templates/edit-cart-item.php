@@ -28,14 +28,10 @@ $context = [
     <?php do_action('himuon_flex_cart_before_edit_panel_variation_image', $context, $data); ?>
     <div class="himuon-cart--variation-preview"
          data-initial-src="<?php echo esc_url($initialImage['src'] ?? ''); ?>"
-         data-initial-srcset="<?php echo esc_attr($initialImage['srcset'] ?? ''); ?>"
-         data-initial-sizes="<?php echo esc_attr($initialImage['sizes'] ?? ''); ?>"
          data-initial-alt="<?php echo esc_attr($initialImage['alt'] ?? ''); ?>">
         <?php if (!empty($initialImage['src'])): ?>
             <img class="himuon-cart--variation-preview-image"
                  src="<?php echo esc_url($initialImage['src']); ?>"
-                 <?php if (!empty($initialImage['srcset'])): ?>srcset="<?php echo esc_attr($initialImage['srcset']); ?>"<?php endif; ?>
-                 <?php if (!empty($initialImage['sizes'])): ?>sizes="<?php echo esc_attr($initialImage['sizes']); ?>"<?php endif; ?>
                  alt="<?php echo esc_attr($initialImage['alt'] ?? $data['title']); ?>">
         <?php endif; ?>
     </div>
