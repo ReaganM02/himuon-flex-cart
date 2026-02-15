@@ -9,6 +9,11 @@ if (!defined('ABSPATH')) {
 
 final class Coupon
 {
+    private function isCouponListEnabled(): bool
+    {
+        return (bool) apply_filters('himuon_flex_cart_enable_coupon_list', true);
+    }
+
     public function register()
     {
 
@@ -22,9 +27,11 @@ final class Coupon
         add_action('wp_ajax_nopriv_himuon_cart_remove_coupon', [$this, 'remove']);
         add_action('wc_ajax_himuon_cart_remove_coupon', [$this, 'remove']);
 
-        add_action('wp_ajax_himuon_cart_list_coupons', [$this, 'listCoupons']);
-        add_action('wp_ajax_nopriv_himuon_cart_list_coupons', [$this, 'listCoupons']);
-        add_action('wc_ajax_himuon_cart_list_coupons', [$this, 'listCoupons']);
+        if ($this->isCouponListEnabled()) {
+            add_action('wp_ajax_himuon_cart_list_coupons', [$this, 'listCoupons']);
+            add_action('wp_ajax_nopriv_himuon_cart_list_coupons', [$this, 'listCoupons']);
+            add_action('wc_ajax_himuon_cart_list_coupons', [$this, 'listCoupons']);
+        }
 
     }
 
@@ -50,6 +57,7 @@ final class Coupon
                     'requestFailed' => __('Unable to update coupon right now. Please try again.', 'himuon-flex-cart'),
                     'listFailed' => __('Unable to load coupons right now. Please try again.', 'himuon-flex-cart'),
                 ],
+                'enableCouponList' => $this->isCouponListEnabled(),
             ]
         );
     }
@@ -131,6 +139,10 @@ final class Coupon
     public function listCoupons()
     {
         check_ajax_referer('himuon_flex_cart_coupon', 'nonce');
+
+        if (!$this->isCouponListEnabled()) {
+            wp_send_json_error(['message' => __('Coupon list is disabled.', 'himuon-flex-cart')], 400);
+        }
 
         if (!function_exists('WC') || !WC()->cart) {
             wp_send_json_error(['message' => __('Cart not available.', 'himuon-flex-cart')], 400);
