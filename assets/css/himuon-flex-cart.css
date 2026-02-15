@@ -1,4 +1,4 @@
-:root {
+.himuon-flex-cart-plugin {
     --himuon-cart--primary: #16a34a;
     --himuon-cart--secondary: #09090b;
     --himuon-cart--text: #52525b;
@@ -127,7 +127,8 @@
 
 .himuon-cart--progress-text {
     margin: 0 0 8px;
-    font-size: 13px;
+    font-size: 0.90rem;
+    font-weight: 400;
     color: var(--himuon-cart--text);
     text-align: center;
 }
@@ -221,7 +222,8 @@
     flex: 1;
     padding: 0.5rem;
     transition: all ease 0.3s;
-    background-color: var(--himuon-cart--alt-bg);
+    background-color: #fff;
+    border-bottom: 1px solid var(--himuon-cart--border);
 }
 
 .himuon-cart--price {
@@ -242,7 +244,8 @@
 
 .himuon-cart--quantity {
     display: flex;
-    border: 1px solid var(--himuon-cart--text);
+    border: 1px solid var(--himuon-cart--border);
+    box-shadow: 0 0 3px 0 var(--himuon-cart--border);
     overflow: hidden;
     border-radius: 5px;
     max-width: max-content;
@@ -328,6 +331,7 @@
     background-color: var(--himuon-cart--border-light);
     cursor: pointer;
     transition: all ease 0.3s;
+    border-bottom: 1px solid var(--himuon-cart--border);
 }
 
 .himuon-cart--cart-item-action:hover {
@@ -381,8 +385,8 @@
 }
 
 #himuon-mini-cart {
-    width: 50px;
-    height: 50px;
+    width: 70px;
+    height: 70px;
     background-color: #fff;
     border: 1px solid var(--himuon-cart--border-light);
     display: grid;
@@ -396,10 +400,11 @@
     position: absolute;
     top: -8px;
     right: -5px;
-    width: 23px;
-    height: 23px;
+    width: 25px;
+    height: 25px;
     background-color: var(--himuon-cart--secondary);
     border-radius: 20rem;
+    font-weight: 400;
     color: #fff;
     display: grid;
     place-items: center;
@@ -411,6 +416,11 @@
 .himuon-cart--mini-icon {
     display: grid;
     color: var(--himuon-cart--secondary);
+    padding: 1rem;
+}
+
+.himuon-cart--mini-icon svg {
+    width: 100%;
 }
 
  
@@ -467,10 +477,12 @@
 }
 
 .himuon-cart--subscription-detail {
-    font-size: 0.85rem;
+    font-size: 0.80rem;
     color: var(--himuon-cart--text);
     opacity: 0.7;
     font-weight: 400;
+    display: block;
+    margin-top: 0.2rem;
 }
 
 .himuon-cart--options-wrapper {
@@ -690,13 +702,73 @@ body .himuon-cart--edit-content table.variations tr td select {
 */
 .himuon-cart--footer {
     border-top: 1px solid var(--himuon-cart--border);
+    box-shadow: 0 0 10px 0 var(--himuon-cart--border);
 }
 
-.himuon-cart--totals {
+.himuon-cart--breakdown-label {
+    font-weight: 400;
+    color: var(--himuon-cart--text);
+}
+
+.himuon-cart--discount-total-value {
+    font-weight: 500;
+    color: var(--himuon-cart--primary);
+}
+
+.himuon-cart--totals-value {
+    font-weight: 500;
+    color: var(--himuon-cart--text);
+}
+
+.himuon-cart--total-breakdown-row {
     display: flex;
     justify-content: space-between;
-    font-size: 14px;
+    font-size: 0.90rem;
     margin-bottom: 12px;
+}
+
+.himuon-cart--applied-coupons-row {
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.himuon-cart--applied-coupons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.4rem;
+}
+
+.himuon-cart--applied-coupon-remove {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 1px solid var(--himuon-cart--border);
+    background: #fff;
+    color: var(--himuon-cart--text);
+    border-radius: 999px;
+    padding: 0.2rem 0.45rem 0.2rem 0.55rem;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.himuon-cart--applied-coupon-remove:hover {
+    background: var(--himuon-cart--border-light);
+}
+
+.himuon-cart--applied-coupon-remove-icon {
+    width: 14px;
+    height: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.himuon-cart--applied-coupon-remove-icon svg {
+    width: 100%;
+    height: 100%;
 }
 
 .himuon-cart--checkout {
@@ -706,7 +778,7 @@ body .himuon-cart--edit-content table.variations tr td select {
     text-align: center;
     text-decoration: none;
     padding: 15px 12px;
-    background: var(--himuon-cart--secondary);
+    background: var(--himuon-cart--primary);
     color: #fff;
     border-radius: 4px;
     font-size: 0.90rem;
@@ -719,4 +791,154 @@ body .himuon-cart--edit-content table.variations tr td select {
         width: 100%;
         max-width: 100%;
     }
+}
+
+/* Coupon CSS Start */
+.himuon-cart-coupon-form-wrapper {
+    cursor: pointer;
+}
+
+.himuon-cart--couponing .himuon-cart--coupon-item-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: #52525b36;
+    transition: all ease 0.5s;
+}
+
+.himuon-cart--coupon-content {
+    position: absolute;
+    background-color: #fff;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    height: min(85vh, 620px);
+    max-height: min(85vh, 620px);
+    min-height: 0;
+    overflow: hidden;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -12px 28px rgba(17, 24, 39, 0.14);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(calc(100% + 16px)) scale(0.985);
+    transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1), opacity 400ms ease, visibility 0s linear 400ms;
+}
+
+.himuon-cart--couponing .himuon-cart--coupon-content {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+    transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1), opacity 400ms ease;
+}
+
+.himuon-cart--coupon-no-anim .himuon-cart--coupon-content,
+.himuon-cart--coupon-no-anim .himuon-cart--coupon-item-overlay {
+    transition: none !important;
+}
+
+.himuon-cart--coupon-form-wrapper {
+    padding-top: 1.75rem;
+}
+
+.himuon-cart--coupon-title {
+    margin-bottom: 1rem;
+    font-weight: 500;
+    font-size: 0.90rem;
+    color: var(--himuon-cart--title);
+}
+
+.himuon-cart--coupon-panel-form {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.himuon-cart--coupon-notices {
+    width: 100%;
+}
+
+.himuon-cart--coupon-notices:empty {
+    display: none;
+}
+
+.himuon-cart--coupon-notices .woocommerce-error,
+.himuon-cart--coupon-notices .woocommerce-message,
+.himuon-cart--coupon-notices .woocommerce-info {
+    list-style: none;
+    margin: 0;
+    padding: 0.65rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.himuon-cart--coupon-notices .woocommerce-error {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.himuon-cart--coupon-notices .woocommerce-message,
+.himuon-cart--coupon-notices .woocommerce-info {
+    background: #f0fdf4;
+    color: #14532d;
+    border: 1px solid #bbf7d0;
+}
+
+.himuon-cart--coupon-input {
+    border: 1px solid var(--himuon-cart--border);
+    padding: 0.65rem 0.75rem;
+    font-size: 0.90rem;
+    color: var(--himuon-cart--text);
+    background-color: #fff;
+    width: 100%;
+    font-family: inherit;
+    border-radius: 4px;
+}
+
+.himuon-cart--coupon-submit {
+    background-color: var(--himuon-cart--primary);
+    color: #fff;
+    border: 0;
+    border-radius: 4px;
+    min-height: 42px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 0.5rem 0.8rem;
+}
+
+.himuon-cart--coupon-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.himuon-cart--close-coupon-panel {
+    position: absolute;
+    top: 4px;
+    right: 15px;
+    cursor: pointer;
+    width: 19px;
+    color: var(--himuon-cart--text);
+}
+
+.himuon-cart--coupon-content .wc-block-components-notice-banner__content {
+    font-size: 0.80rem;
+    font-family: inherit;
+    color: var(--himuon-cart--text);
+}
+
+.himuon-cart--coupon-content .wc-block-components-notice-banner {
+    padding: 5px !important;
+}
+
+.himuon-cart--coupon-content .wc-block-components-notice-banner svg{
+    display: none
 }
