@@ -167,7 +167,7 @@ class SideCartView
     {
         return (string) apply_filters(
             'himuon_flex_cart_footer_discount_label',
-            __('Discount', 'himuon-flex-cart'),
+            __('Discount total', 'himuon-flex-cart'),
             self::getCart()
         );
     }

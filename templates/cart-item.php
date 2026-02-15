@@ -72,8 +72,7 @@ if (!defined('ABSPATH')) {
                 <?php do_action('himuon_flex_cart_before_after_item_quantity', $data); ?>
                 <?php if (!empty($data['discount']['hasDiscount'])): ?>
                     <div class="himuon-cart--discount">
-                        <?php echo esc_html__('Saved:', 'himuon-flex-cart'); ?>
-                        <?php echo wp_kses_post($data['discount']['formatted']); ?>
+                        <?php echo wp_kses_post($data['discount']['percent']); ?>
                     </div>
                 <?php endif; ?>
             </div>

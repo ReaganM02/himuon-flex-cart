@@ -38,7 +38,7 @@ final class CouponView
     {
         return (string) apply_filters(
             'himuon_flex_cart_applied_coupons_label',
-            __('Coupons', 'himuon-flex-cart')
+            __('Coupon', 'himuon-flex-cart')
         );
     }
 

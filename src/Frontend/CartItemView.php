@@ -303,24 +303,20 @@ final class CartItemView
     {
         $qty = max(1, (int) ($cartItem['quantity'] ?? 1));
 
-        // Coupon/line discount
-        $lineSubtotal = (float) ($cartItem['line_subtotal'] ?? 0);
-        $lineTotal = (float) ($cartItem['line_total'] ?? 0);
-        $lineDiscount = max(0, $lineSubtotal - $lineTotal);
-
-        // Sale discount fallback
+        // Item-level discount only (exclude coupon/line discount).
         $regular = (float) $product->get_regular_price();
         $active = (float) $product->get_price();
-        $saleDiscount = max(0, ($regular - $active) * $qty);
+        $unitSavings = max(0, $regular - $active);
+        $saleDiscount = $unitSavings * $qty;
 
-        $amount = max($lineDiscount, $saleDiscount);
-        $percent = $regular > 0 ? round((($regular - $active) / $regular) * 100) : 0;
+        $amount = max(0, $saleDiscount);
+        $percent = ($regular > 0 && $unitSavings > 0) ? round(($unitSavings / $regular) * 100) : 0;
 
         $discount = [
             'amount' => $amount,
             'formatted' => wc_price($amount),
             'hasDiscount' => $amount > 0,
-            'percent' => max(0, $percent),
+            'percent' => max(0, $percent) . '% Off',
         ];
 
         return (array) apply_filters('himuon_flex_cart_item_discount', $discount, $cartItem, $cartItemKey, $product);

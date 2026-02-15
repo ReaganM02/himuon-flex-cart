@@ -12,7 +12,8 @@ if (!defined('ABSPATH')) {
 $payableTotal = SideCartView::getPayableTotal();
 $hasDiscount = SideCartView::hasDiscountTotal();
 $discountTotal = $hasDiscount ? SideCartView::getDiscountTotal() : '';
-$appliedCoupons = (function_exists('WC') && WC()->cart) ? WC()->cart->get_applied_coupons() : [];
+$cart = (function_exists('WC') && WC()->cart) ? WC()->cart : null;
+$appliedCoupons = $cart ? $cart->get_applied_coupons() : [];
 ?>
 <footer class="himuon-cart--footer">
     <div class="himuon-cart-coupon-form-wrapper himuon-cart--total-breakdown-row">
@@ -24,13 +25,20 @@ $appliedCoupons = (function_exists('WC') && WC()->cart) ? WC()->cart->get_applie
         </div>
     </div>
     <?php if (!empty($appliedCoupons)): ?>
-        <div class="himuon-cart--total-breakdown-row himuon-cart--applied-coupons-row">
-            <span class="himuon-cart--breakdown-label">
-                <?php echo esc_html(CouponView::appliedCouponsLabel()); ?>
-            </span>
-            <div class="himuon-cart--applied-coupons">
-                <?php foreach ($appliedCoupons as $couponCode): ?>
-                    <?php $couponDisplay = wc_format_coupon_code($couponCode); ?>
+        <?php foreach ($appliedCoupons as $couponCode): ?>
+            <?php
+            $couponDisplay = wc_format_coupon_code($couponCode);
+            $excludeTax = true;
+            if ($cart && method_exists($cart, 'display_prices_including_tax')) {
+                $excludeTax = !$cart->display_prices_including_tax();
+            }
+            $couponAmount = $cart ? (float) $cart->get_coupon_discount_amount($couponCode, $excludeTax) : 0.0;
+            ?>
+            <div class="himuon-cart--total-breakdown-row himuon-cart--applied-coupon-line">
+                <div class="himuon-cart--applied-coupon-left">
+                    <span class="himuon-cart--breakdown-label">
+                        <?php echo esc_html(CouponView::appliedCouponsLabel()); ?>
+                    </span>
                     <button type="button"
                             class="himuon-cart--applied-coupon-remove"
                             data-coupon-code="<?php echo esc_attr($couponCode); ?>"
@@ -42,9 +50,12 @@ $appliedCoupons = (function_exists('WC') && WC()->cart) ? WC()->cart->get_applie
                             <?php echo wp_kses(CouponView::removeCouponIcon(), Helper::allowSVG()); ?>
                         </span>
                     </button>
-                <?php endforeach; ?>
+                </div>
+                <span class="himuon-cart--applied-coupon-value">
+                    - <?php echo wp_kses_post(wc_price($couponAmount)); ?>
+                </span>
             </div>
-        </div>
+        <?php endforeach; ?>
     <?php endif; ?>
     <?php if ($hasDiscount): ?>
         <div class="himuon-cart--total-breakdown-row">
