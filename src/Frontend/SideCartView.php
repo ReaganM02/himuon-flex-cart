@@ -47,11 +47,49 @@ class SideCartView
         return '';
     }
 
+    public static function getPayableTotalRaw(): float
+    {
+        $cart = self::getCart();
+        if (!$cart) {
+            return 0.0;
+        }
+
+        $total = (float) $cart->get_cart_contents_total();
+
+        if (method_exists($cart, 'display_prices_including_tax') && $cart->display_prices_including_tax()) {
+            $total += (float) $cart->get_cart_contents_tax();
+        }
+
+        return (float) apply_filters(
+            'himuon_flex_cart_footer_payable_total_raw',
+            $total,
+            $cart
+        );
+    }
+
+    public static function getPayableTotal(): string
+    {
+        return (string) apply_filters(
+            'himuon_flex_cart_footer_payable_total',
+            wc_price(self::getPayableTotalRaw()),
+            self::getCart()
+        );
+    }
+
     public static function subtotalLabel()
     {
         return (string) apply_filters(
             'himuon_flex_cart_footer_subtotal_label',
             __('Subtotal', 'himuon-flex-cart'),
+            self::getCart()
+        );
+    }
+
+    public static function payableTotalLabel()
+    {
+        return (string) apply_filters(
+            'himuon_flex_cart_footer_payable_total_label',
+            __('Total', 'himuon-flex-cart'),
             self::getCart()
         );
     }
