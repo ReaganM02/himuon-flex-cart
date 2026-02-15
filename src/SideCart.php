@@ -2,6 +2,7 @@
 
 namespace Himuon\Flex\Cart;
 
+use Himuon\Flex\Cart\Frontend\EditSubscriptionItemView;
 use Himuon\Flex\Cart\Helper;
 use Himuon\Flex\Cart\Variation;
 use WCS_ATT_Cart;
