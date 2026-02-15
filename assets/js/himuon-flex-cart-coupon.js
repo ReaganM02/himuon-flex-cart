@@ -75,6 +75,105 @@ jQuery(function ($) {
         noticesWrapper.innerHTML = noticesHtml || ''
     }
 
+    const getCouponFormWrapper = (wrapper) => {
+        if (!wrapper) {
+            return null
+        }
+        return wrapper.querySelector('.himuon-cart--coupon-form-wrapper')
+    }
+
+    const setCouponListLoading = (wrapper, isLoading) => {
+        const formWrapper = getCouponFormWrapper(wrapper)
+        if (!formWrapper) {
+            return
+        }
+
+        const list = formWrapper.querySelector('.himuon-cart--coupon-list')
+        if (list) {
+            list.hidden = !!isLoading
+        }
+
+        const loading = formWrapper.querySelector('.himuon-cart--coupon-list-loading')
+        if (loading) {
+            loading.hidden = !isLoading
+        }
+    }
+
+    const updateCouponListHtml = (wrapper, html) => {
+        const formWrapper = getCouponFormWrapper(wrapper)
+        if (!formWrapper) {
+            return
+        }
+
+        const list = formWrapper.querySelector('.himuon-cart--coupon-list')
+        if (!list) {
+            return
+        }
+
+        list.innerHTML = html || ''
+    }
+
+    const couponListErrorHtml = () => {
+        const message =
+            typeof himuonFlexCartCoupon !== 'undefined' &&
+                himuonFlexCartCoupon &&
+                himuonFlexCartCoupon.messages &&
+                himuonFlexCartCoupon.messages.listFailed
+                ? String(himuonFlexCartCoupon.messages.listFailed)
+                : 'Unable to load coupons right now. Please try again.'
+
+        const escaped = jQuery('<div/>').text(message).html()
+        return `<div class="himuon-cart--coupon-list-error">${escaped}</div>`
+    }
+
+    const loadCouponList = (forceReload) => {
+        if (typeof wc_cart_fragments_params === 'undefined' || !himuonFlexCartCoupon || !himuonFlexCartCoupon.nonce) {
+            return
+        }
+
+        const wrapper = getCouponWrapper()
+        if (!wrapper) {
+            return
+        }
+
+        const formWrapper = getCouponFormWrapper(wrapper)
+        if (!formWrapper) {
+            return
+        }
+
+        if (!forceReload && formWrapper.dataset.couponListLoaded === '1') {
+            return
+        }
+        if (formWrapper.dataset.couponListLoading === '1') {
+            return
+        }
+
+        formWrapper.dataset.couponListLoading = '1'
+        setCouponListLoading(wrapper, true)
+
+        $.ajax({
+            type: 'post',
+            url: wc_cart_fragments_params.wc_ajax_url.toString().replace('%%endpoint%%', 'himuon_cart_list_coupons'),
+            data: {
+                nonce: himuonFlexCartCoupon.nonce
+            },
+            dataType: 'json',
+            complete: () => {
+                formWrapper.dataset.couponListLoading = '0'
+                setCouponListLoading(wrapper, false)
+            },
+            success: (response) => {
+                const payload = response && response.data ? response.data : {}
+                updateCouponListHtml(wrapper, payload.html || '')
+                formWrapper.dataset.couponListLoaded = '1'
+            },
+            error: () => {
+                updateCouponListHtml(wrapper, couponListErrorHtml())
+                formWrapper.dataset.couponListLoaded = '0'
+            }
+        })
+    }
+
     const replaceFragments = (fragments) => {
         if (!fragments || typeof fragments !== 'object') {
             return
@@ -112,6 +211,9 @@ jQuery(function ($) {
         updateCouponNotices(wrapper, noticesHtml || '')
 
         if (noticesHasError(noticesHtml)) {
+            requestAnimationFrame(() => {
+                wrapper.classList.remove('himuon-cart--coupon-no-anim')
+            })
             return
         }
 
@@ -169,6 +271,7 @@ jQuery(function ($) {
 
         e.preventDefault()
         openCouponPanel()
+        loadCouponList(false)
     })
 
     document.addEventListener('click', (e) => {
@@ -264,10 +367,101 @@ jQuery(function ($) {
 
                 // Side-cart fragments replace coupon DOM; restore open state + notices on the new nodes.
                 restoreCouponPanelAfterRefresh(payload.notices_html || '')
+                loadCouponList(true)
             },
             error: () => {
                 updateCouponNotices(couponForm, fallbackCouponErrorNotice())
             }
         })
+    })
+
+    /**
+     * =============================================================================
+     * Event Bindings: Remove coupon
+     * =============================================================================
+     */
+
+    document.addEventListener('click', (e) => {
+        const target = getTargetElement(e)
+        if (!target) {
+            return
+        }
+
+        const removeButton = target.closest('.himuon-cart--applied-coupon-remove')
+        if (!removeButton || !(removeButton instanceof HTMLButtonElement)) {
+            return
+        }
+
+        e.preventDefault()
+
+        const couponCode = removeButton.dataset.couponCode
+        if (!couponCode) {
+            return
+        }
+
+        if (typeof wc_cart_fragments_params === 'undefined' || !himuonFlexCartCoupon || !himuonFlexCartCoupon.nonce) {
+            return
+        }
+
+        const $button = $(removeButton)
+        if ($button.data('removing')) {
+            return
+        }
+
+        $button.data('removing', true)
+        emitCartLoading(true)
+
+        $.ajax({
+            type: 'post',
+            url: wc_cart_fragments_params.wc_ajax_url.toString().replace('%%endpoint%%', 'himuon_cart_remove_coupon'),
+            data: {
+                coupon_code: couponCode,
+                nonce: himuonFlexCartCoupon.nonce
+            },
+            dataType: 'json',
+            complete: () => {
+                $button.data('removing', false)
+                emitCartLoading(false)
+            },
+            success: (response) => {
+                const payload = response && response.data ? response.data : {}
+                replaceFragments(payload.fragments || null)
+            }
+        })
+    })
+
+    document.addEventListener('click', (e) => {
+        const target = getTargetElement(e)
+        if (!target) {
+            return
+        }
+
+        const applyButton = target.closest('.himuon-cart--coupon-list-apply')
+        if (!applyButton || !(applyButton instanceof HTMLButtonElement)) {
+            return
+        }
+
+        e.preventDefault()
+
+        const couponCode = applyButton.dataset.couponCode
+        if (!couponCode) {
+            return
+        }
+
+        const wrapper = getCouponWrapper()
+        const formWrapper = getCouponFormWrapper(wrapper)
+        if (!formWrapper) {
+            return
+        }
+
+        const input = formWrapper.querySelector('.himuon-cart--coupon-input')
+        const form = formWrapper.querySelector('.himuon-cart--coupon-panel-form')
+        if (!input || !form) {
+            return
+        }
+
+        input.value = couponCode
+        updateCouponSubmitState(input)
+        form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))
     })
 })
