@@ -31,4 +31,38 @@ if (!defined('ABSPATH')) {
             <?php echo wp_kses(CouponView::applyCouponLabel(), Helper::allowSVG()) ?>
         </button>
     </form>
+    <div class="himuon-cart--coupon-list"
+         aria-live="polite"></div>
+    <div class="himuon-cart--coupon-list-loading"
+         hidden
+         aria-hidden="true">
+        <div class="himuon-cart--coupon-list-loading-item">
+            <div class="himuon-cart--coupon-list-loading-main">
+                <div class="himuon-cart--coupon-list-loading-code"></div>
+                <div class="himuon-cart--coupon-list-loading-description"></div>
+            </div>
+            <div class="himuon-cart--coupon-list-loading-apply"></div>
+        </div>
+        <div class="himuon-cart--coupon-list-loading-item">
+            <div class="himuon-cart--coupon-list-loading-main">
+                <div class="himuon-cart--coupon-list-loading-code"></div>
+                <div class="himuon-cart--coupon-list-loading-description"></div>
+            </div>
+            <div class="himuon-cart--coupon-list-loading-apply"></div>
+        </div>
+        <div class="himuon-cart--coupon-list-loading-item">
+            <div class="himuon-cart--coupon-list-loading-main">
+                <div class="himuon-cart--coupon-list-loading-code"></div>
+                <div class="himuon-cart--coupon-list-loading-description"></div>
+            </div>
+            <div class="himuon-cart--coupon-list-loading-apply"></div>
+        </div>
+        <div class="himuon-cart--coupon-list-loading-item">
+            <div class="himuon-cart--coupon-list-loading-main">
+                <div class="himuon-cart--coupon-list-loading-code"></div>
+                <div class="himuon-cart--coupon-list-loading-description"></div>
+            </div>
+            <div class="himuon-cart--coupon-list-loading-apply"></div>
+        </div>
+    </div>
 </div>
