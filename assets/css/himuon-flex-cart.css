@@ -387,8 +387,8 @@
 }
 
 #himuon-mini-cart {
-    width: 70px;
-    height: 70px;
+    width: 60px;
+    height: 60px;
     background-color: #fff;
     border: 1px solid var(--himuon-cart--border-light);
     display: grid;
@@ -618,11 +618,16 @@ body .himuon-cart--edit-content table.variations tr td select {
 }
 
 .himuon-cart--edit-content .price,
-.woocommerce-variation-price {
+.himuon-cart--edit-content .woocommerce-variation-price {
     font-size: 1rem;
     font-weight: 500;
     color: var(--himuon-cart--text);
     margin-top: 0.5rem;
+    width: 100%;
+}
+
+.himuon-cart--edit-content table {
+    margin-bottom:  0 !important;
 }
 
 .himuon-cart--variation-action {
