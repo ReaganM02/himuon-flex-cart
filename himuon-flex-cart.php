@@ -3,16 +3,16 @@
 use Himuon\Flex\Cart\Init;
 /**
  * Plugin Name:       Himuon Flex Cart
- * Description:       Side cart that focuses on UX 
+ * Description:       AJAX-powered WooCommerce side cart focused on UX, with in-cart quantity/variation/subscription editing, coupon apply/remove flow, free-shipping progress, and developer-friendly hooks.
  * Version:           1.0.0
  * Author:            Reagan Mahinay
  * Author URI:        https://github.com/ReaganM02
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       himuon-flex-cart
- * Requires at least: 6.9
- * Requires PHP: 7.4
- * Tested up to: 6.9
+ * Requires at least: 6.9.1
+ * Requires PHP: 8.0
+ * Tested up to: 6.9.1
  * Requires Plugins: woocommerce
  * @package himuon-flex-cart
  */
