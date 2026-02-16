@@ -89,9 +89,26 @@ add_filter( 'himuon_flex_cart_mini_cart_icon', function () {
 } );
 ```
 
+### Add custom side cart trigger
+
+Any element with the `himuon-side-cart-handler` class will toggle the side cart.
+
+```html
+<button type="button" class="himuon-side-cart-handler">
+    Open Cart
+</button>
+```
+
+### Hide floating mini cart trigger
+
+```php
+add_filter( 'himuon_flex_cart_show_mini_cart', '__return_false' );
+```
+
 ## High-Value Filters
 
 - `himuon_flex_cart_mini_cart_icon` (string SVG) ([source](https://github.com/ReaganM02/himuon-flex-cart/blob/main/src/Frontend/SideCartView.php#L35))
+- `himuon_flex_cart_show_mini_cart` (bool) ([source](https://github.com/ReaganM02/himuon-flex-cart/blob/main/src/SideCart.php#L18))
 - `himuon_flex_cart_enable_coupon_list` (bool) ([source](https://github.com/ReaganM02/himuon-flex-cart/blob/main/src/Coupon.php#L14))
 - `himuon_flex_cart_theme_colors` (array) ([source](https://github.com/ReaganM02/himuon-flex-cart/blob/main/src/SideCart.php#L94))
 - `himuon_flex_cart_free_shipping_threshold` (float) ([source](https://github.com/ReaganM02/himuon-flex-cart/blob/main/src/Frontend/CartItemView.php#L26))

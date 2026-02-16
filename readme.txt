@@ -81,6 +81,18 @@ Use the `himuon_flex_cart_header_text` filter:
 
 `add_filter( 'himuon_flex_cart_header_text', function () { return __( 'My Cart', 'your-text-domain' ); } );`
 
+= Can I use my own button or link to open the side cart? =
+
+Yes. Add the `himuon-side-cart-handler` class to any element:
+
+`<button type="button" class="himuon-side-cart-handler">Open Cart</button>`
+
+= Can I hide the floating mini cart trigger? =
+
+Yes. Use this filter:
+
+`add_filter( 'himuon_flex_cart_show_mini_cart', '__return_false' );`
+
 
 == Changelog ==
 
