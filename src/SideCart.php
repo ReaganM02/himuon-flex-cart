@@ -149,7 +149,7 @@ final class SideCart
 
         $items = WC()->cart->get_cart();
         ob_start();
-        require_once HIMUON_FLEX_CART_PATH . 'templates/wrapper.php';
+        Helper::template('wrapper.php');
         echo ob_get_clean();
     }
 
@@ -157,14 +157,29 @@ final class SideCart
     {
         ob_start();
         $items = WC()->cart ? WC()->cart->get_cart() : [];
-        require HIMUON_FLEX_CART_PATH . 'templates/side-cart.php';
+        Helper::template('side-cart.php');
         $fragments['#himuon-side-cart'] = ob_get_clean();
 
-        ob_start();
-        require HIMUON_FLEX_CART_PATH . 'templates/mini-cart.php';
-        $fragments['#himuon-mini-cart'] = ob_get_clean();
+        $fragments['#himuon-mini-cart .himuon-cart--mini-count'] = $this->renderMiniCartCount();
 
         return $fragments;
+    }
+
+    private function renderMiniCartCount()
+    {
+        $cartCount = 0;
+        if (function_exists('WC') && WC()->cart) {
+            $cartCount = WC()->cart->get_cart_contents_count();
+        }
+
+        ob_start();
+        ?>
+        <span class="himuon-cart--mini-count"
+              data-count="<?php echo esc_attr((string) absint($cartCount)); ?>">
+            <?php echo esc_html((string) absint($cartCount)); ?>
+        </span>
+        <?php
+        return (string) ob_get_clean();
     }
 
     public function updateCartItem()
