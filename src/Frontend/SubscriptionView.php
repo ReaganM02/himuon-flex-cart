@@ -65,6 +65,7 @@ final class SubscriptionView
                     $periodLabel .= 's';
                 }
 
+                /* translators: %s: billing period label, e.g. "month" or "3 months". */
                 $title = sprintf(__('Every %s', 'himuon-flex-cart'), $periodLabel);
 
                 $title = (string) apply_filters(
@@ -91,6 +92,7 @@ final class SubscriptionView
 
                 $optionValue = WCS_ATT_Product_Schemes::stringify_subscription_scheme_key($schemeKey);
 
+                /* translators: %s: discount text, e.g. "10%". */
                 $discountText = $discount ? sprintf(__('(%s off)', 'himuon-flex-cart'), $discount) : '';
 
                 $options[] = [
@@ -132,10 +134,5 @@ final class SubscriptionView
             'himuon_flex_cart_subscription_single_purchase_label',
             __('Single purchase', 'himuon-flex-cart')
         );
-    }
-
-    private static function log($data)
-    {
-        error_log(print_r($data, true));
     }
 }

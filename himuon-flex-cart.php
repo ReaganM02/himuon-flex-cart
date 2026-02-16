@@ -10,12 +10,17 @@ use Himuon\Flex\Cart\Init;
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       himuon-flex-cart
- * Requires at least: 6.9.1
+ * Requires at least: 6.9
  * Requires PHP: 8.0
- * Tested up to: 6.9.1
+ * Tested up to: 6.9
  * Requires Plugins: woocommerce
  * @package himuon-flex-cart
  */
+
+// Exit if accessed directly.
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 define('HIMUON_FLEX_CART_VERSION', '1.0.0');
 define('HIMUON_FLEX_CART_PATH', plugin_dir_path(__FILE__));

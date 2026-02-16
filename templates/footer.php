@@ -49,6 +49,7 @@ $appliedCoupons = $cart ? $cart->get_applied_coupons() : [];
                     <button type="button"
                             class="himuon-cart--applied-coupon-remove"
                             data-coupon-code="<?php echo esc_attr($couponCode); ?>"
+                            <?php /* translators: %s: coupon code currently applied in cart. */ ?>
                             aria-label="<?php echo esc_attr(sprintf(__('Remove coupon %s', 'himuon-flex-cart'), $couponDisplay)); ?>">
                         <span class="himuon-cart--applied-coupon-code">
                             <?php echo esc_html($couponDisplay); ?>

@@ -1,8 +1,8 @@
 === Himuon Flex Cart ===
 Contributors: reaganm02
-Tags: woocommerce, side cart, ajax cart, mini cart, cart drawer, coupons
-Requires at least: 6.9.1
-Tested up to: 6.9.1
+Tags: woocommerce, side cart, ajax cart, mini cart, cart drawer
+Requires at least: 6.9
+Tested up to: 6.9
 Requires PHP: 8.0
 Stable tag: 1.0.0
 License: GPLv2 or later

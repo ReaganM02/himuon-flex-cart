@@ -18,6 +18,36 @@ if (!defined('ABSPATH')) {
 
 final class SideCart
 {
+    private function getRequestString(string $key): string
+    {
+        $value = filter_input(INPUT_POST, $key, FILTER_UNSAFE_RAW);
+        if (null === $value || false === $value) {
+            return '';
+        }
+
+        return wc_clean(wp_unslash((string) $value));
+    }
+
+    private function getRequestNullableString(string $key): ?string
+    {
+        $value = filter_input(INPUT_POST, $key, FILTER_UNSAFE_RAW);
+        if (null === $value || false === $value) {
+            return null;
+        }
+
+        return wc_clean(wp_unslash((string) $value));
+    }
+
+    private function getRequestInt(string $key, int $default = 0): int
+    {
+        $value = $this->getRequestNullableString($key);
+        if (null === $value || '' === $value) {
+            return $default;
+        }
+
+        return (int) $value;
+    }
+
     public function register()
     {
         add_action('wp_enqueue_scripts', [$this, 'enqueueScripts']);
@@ -118,7 +148,7 @@ final class SideCart
     {
         check_ajax_referer('himuon_flex_cart', 'nonce');
 
-        $cartItemKey = isset($_POST['cartItemKey']) ? wc_clean(wp_unslash($_POST['cartItemKey'])) : '';
+        $cartItemKey = $this->getRequestString('cartItemKey');
 
         $cartItem = WC()->cart->get_cart_item($cartItemKey);
 
@@ -150,6 +180,7 @@ final class SideCart
         $items = WC()->cart->get_cart();
         ob_start();
         Helper::template('wrapper.php');
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Template output is escaped within template files.
         echo ob_get_clean();
     }
 
@@ -190,8 +221,8 @@ final class SideCart
             wp_send_json_error(['message' => 'Cart not available.'], 400);
         }
 
-        $cartItemKey = isset($_POST['cartItemKey']) ? wc_clean(wp_unslash($_POST['cartItemKey'])) : '';
-        $quantity = isset($_POST['quantity']) ? (int) $_POST['quantity'] : 0;
+        $cartItemKey = $this->getRequestString('cartItemKey');
+        $quantity = $this->getRequestInt('quantity', 0);
 
         if ('' === $cartItemKey || $quantity < 0) {
             wp_send_json_error(['message' => 'Invalid cart data.'], 400);
@@ -217,7 +248,7 @@ final class SideCart
             wp_send_json_error(['message' => 'Cart not available.'], 400);
         }
 
-        $cartItemKey = isset($_POST['cart_item_key']) ? wc_clean(wp_unslash($_POST['cart_item_key'])) : '';
+        $cartItemKey = $this->getRequestString('cart_item_key');
 
         $cart = WC()->cart->get_cart();
         $cartItem = isset($cart[$cartItemKey]) ? $cart[$cartItemKey] : null;
@@ -247,11 +278,9 @@ final class SideCart
             $postKey = 'attribute_' . $key;
 
             // Accept if client sent attribute_pa_color or pa_color
-            $raw = null;
-            if (isset($_POST[$postKey])) {
-                $raw = $_POST[$postKey];
-            } elseif (isset($_POST[$key])) {
-                $raw = $_POST[$key];
+            $raw = $this->getRequestNullableString($postKey);
+            if (null === $raw) {
+                $raw = $this->getRequestNullableString($key);
                 $postKey = $key; // keep original key if you want
             }
 
@@ -259,7 +288,7 @@ final class SideCart
                 continue;
             }
 
-            $value = wc_clean(wp_unslash($raw));
+            $value = $raw;
             if ($value !== '') {
                 $variation['attribute_' . $key] = $value; // normalize output key
             }
@@ -275,9 +304,9 @@ final class SideCart
         $newSubscriptionScheme = $existingSubscriptionScheme;
         $subscriptionSelectionPosted = false;
 
-        if (isset($_POST['convert_to_sub'])) {
+        $postedScheme = $this->getRequestNullableString('convert_to_sub');
+        if (null !== $postedScheme) {
             $subscriptionSelectionPosted = true;
-            $postedScheme = wc_clean(wp_unslash($_POST['convert_to_sub']));
             if (class_exists('WCS_ATT_Product_Schemes')) {
                 $newSubscriptionScheme = WCS_ATT_Product_Schemes::parse_subscription_scheme_key($postedScheme);
             } else {
@@ -386,7 +415,7 @@ final class SideCart
             wp_send_json_error(['message' => 'Cart not available.'], 400);
         }
 
-        $cartItemKey = isset($_POST['cart_item_key']) ? wc_clean(wp_unslash($_POST['cart_item_key'])) : '';
+        $cartItemKey = $this->getRequestString('cart_item_key');
         if ('' === $cartItemKey) {
             wp_send_json_error(['message' => 'Invalid cart data.'], 400);
         }
@@ -402,7 +431,7 @@ final class SideCart
             wp_send_json_error(['message' => __('Product is not subscription editable.', 'himuon-flex-cart')], 400);
         }
 
-        $postedScheme = isset($_POST['convert_to_sub']) ? wc_clean(wp_unslash($_POST['convert_to_sub'])) : null;
+        $postedScheme = $this->getRequestNullableString('convert_to_sub');
         if (null === $postedScheme) {
             wp_send_json_error(['message' => __('Missing subscription option.', 'himuon-flex-cart')], 400);
         }
@@ -458,7 +487,7 @@ final class SideCart
             wp_send_json_error(['message' => 'Cart not available.'], 400);
         }
 
-        $cartItemKey = isset($_POST['cart_item_key']) ? wc_clean(wp_unslash($_POST['cart_item_key'])) : '';
+        $cartItemKey = $this->getRequestString('cart_item_key');
 
         if ('' === $cartItemKey) {
             wp_send_json_error(['message' => 'Invalid cart data.'], 400);

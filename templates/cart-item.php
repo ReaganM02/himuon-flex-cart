@@ -46,7 +46,7 @@ if (!defined('ABSPATH')) {
                 <?php endif; ?>
                 <!-- End of Variation -->
                 <div class="himuon-cart--price">
-                    <?php echo $data['price'] ?>
+                    <?php echo wp_kses_post($data['price']); ?>
                 </div>
             </div>
             <div class="himuon-cart--right-content">
@@ -62,7 +62,9 @@ if (!defined('ABSPATH')) {
                            class="himuon-cart--qty"
                            value="<?php echo absint($data['quantity']['qty']) ?>"
                            min="<?php echo absint($data['quantity']['min']) ?>"
-                           <?php echo ($data['quantity']['max'] > 0) ? 'max="' . $data['quantity']['max'] . '"' : '' ?> />
+                           <?php if ((int) $data['quantity']['max'] > 0): ?>
+                               max="<?php echo esc_attr((string) absint($data['quantity']['max'])); ?>"
+                           <?php endif; ?> />
                     <button type="button"
                             class="himuon-cart--plus"
                             aria-label="<?php echo esc_attr__('Increase quantity', 'himuon-flex-cart'); ?>">

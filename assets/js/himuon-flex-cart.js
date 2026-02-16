@@ -700,7 +700,6 @@ jQuery(function ($) {
 
         // Keep side-cart variation events from leaking to document-level listeners.
         $form.on('found_variation.himuonSideCart', function (e, variation) {
-            console.log(variation)
             e.stopPropagation()
             $(this).data('himuonVariation', variation || null)
             updateEditVariationPreview(editContent, variation || null, false)

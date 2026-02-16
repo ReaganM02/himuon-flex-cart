@@ -39,6 +39,7 @@ final class CartItemView
 
             $remainingText = apply_filters(
                 'himuon_flex_cart_free_shipping_remaining_text',
+                /* translators: %s: formatted amount remaining before free shipping. */
                 __('Add %s for free shipping', 'himuon-flex-cart'),
                 $remaining,
                 $threshold,

@@ -18,7 +18,7 @@ $isCouponListEnabled = (bool) apply_filters('himuon_flex_cart_enable_coupon_list
 
     <?php do_action('himuon_flex_cart_coupon_before_title'); ?>
     <div class="himuon-cart--coupon-title">
-        <?php echo CouponView::couponTitle() ?>
+        <?php echo esc_html(CouponView::couponTitle()) ?>
     </div>
     <?php do_action('himuon_flex_cart_coupon_after_title'); ?>
 

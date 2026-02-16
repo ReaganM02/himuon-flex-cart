@@ -71,7 +71,8 @@ final class Coupon
             wp_send_json_error(['message' => __('Cart not available.', 'himuon-flex-cart')], 400);
         }
 
-        $couponCode = isset($_POST['coupon_code']) ? wc_clean(wp_unslash($_POST['coupon_code'])) : '';
+        $couponCode = (string) filter_input(INPUT_POST, 'coupon_code', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $couponCode = wc_clean(wp_unslash($couponCode));
         $couponCode = wc_format_coupon_code($couponCode);
 
         if ('' === $couponCode) {
@@ -102,7 +103,8 @@ final class Coupon
             wp_send_json_error(['message' => __('Cart not available.', 'himuon-flex-cart')], 400);
         }
 
-        $couponCode = isset($_POST['coupon_code']) ? wc_clean(wp_unslash($_POST['coupon_code'])) : '';
+        $couponCode = (string) filter_input(INPUT_POST, 'coupon_code', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $couponCode = wc_clean(wp_unslash($couponCode));
         $couponCode = wc_format_coupon_code($couponCode);
 
         if ('' === $couponCode) {
@@ -195,8 +197,10 @@ final class Coupon
             $discountType = (string) $coupon->get_discount_type();
 
             if ('percent' === $discountType) {
+                /* translators: %s: coupon percentage amount without symbol (e.g. 20). */
                 $summary = sprintf(__('%s%% off', 'himuon-flex-cart'), wc_format_decimal($amount, 0));
             } elseif ('fixed_cart' === $discountType || 'fixed_product' === $discountType) {
+                /* translators: %s: formatted currency amount (e.g. $10.00). */
                 $summary = sprintf(__('%s off', 'himuon-flex-cart'), html_entity_decode(wp_strip_all_tags(wc_price($amount))));
             } elseif ($coupon->get_free_shipping()) {
                 $summary = __('Free shipping', 'himuon-flex-cart');
