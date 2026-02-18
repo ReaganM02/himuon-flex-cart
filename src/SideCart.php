@@ -18,6 +18,12 @@ if (!defined('ABSPATH')) {
 
 final class SideCart
 {
+    private function shouldShowMiniCart(): bool
+    {
+        $cart = (function_exists('WC') && WC()->cart) ? WC()->cart : null;
+        return (bool) apply_filters('himuon_flex_cart_show_mini_cart', true, $cart);
+    }
+
     private function getRequestString(string $key): string
     {
         $value = filter_input(INPUT_POST, $key, FILTER_UNSAFE_RAW);
@@ -191,7 +197,9 @@ final class SideCart
         Helper::template('side-cart.php');
         $fragments['#himuon-side-cart'] = ob_get_clean();
 
-        $fragments['#himuon-mini-cart .himuon-cart--mini-count'] = $this->renderMiniCartCount();
+        if ($this->shouldShowMiniCart()) {
+            $fragments['#himuon-mini-cart .himuon-cart--mini-count'] = $this->renderMiniCartCount();
+        }
 
         return $fragments;
     }
