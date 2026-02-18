@@ -1,3 +1,4 @@
+![Himuon Flex Cart Thumbnail](http://reagandev.com/wp-content/uploads/2026/02/flex-cart-thumbnail.jpg)
 # Himuon Flex Cart
 
 AJAX-powered WooCommerce side cart focused on fast UX and developer-first extensibility.
