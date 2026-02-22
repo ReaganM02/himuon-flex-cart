@@ -1,5 +1,7 @@
 === Himuon Flex Cart ===
-Contributors: reaganm02
+Author: Reagan Mahinay
+Author URI: https://github.com/ReaganM02
+Contributors: reagandev
 Tags: woocommerce, side cart, ajax cart, mini cart, cart drawer
 Requires at least: 6.9
 Tested up to: 6.9
@@ -37,7 +39,7 @@ This plugin is intentionally developer-oriented.
 
 **There is no admin settings page for UI/behavior customization.**
 Use hooks, filters, and template-level customizations to adapt output and behavior.
-**More hooks, filters, and code examples are available on GitHub: https://github.com/ReaganM02/himuon-flex-cart**
+More hooks, filters, and code examples are available through the plugin source and template files.
 
 == Installation ==
 
